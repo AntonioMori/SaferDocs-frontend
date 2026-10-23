@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # ---------------------------------------------------------------------------
+  # 🗄️ Banco de Dados (Padrão sugerido: PostgreSQL)
+  # ---------------------------------------------------------------------------
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydatabase
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # ---------------------------------------------------------------------------
+  # ⚙️ Backend API
+  # ⚠️ Requer um arquivo 'Dockerfile' dentro de apps/backend/
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/mydatabase
+    volumes:
+      - ./apps/backend:/app  # Hot-reload para desenvolvimento
+
+  # ---------------------------------------------------------------------------
+  # 🖥️ Frontend
+  # ⚠️ Requer um arquivo 'Dockerfile' dentro de apps/frontend/
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps/frontend:/app
+      - /app/node_modules
+    # depends_on:
+    #   - backend  # Descomente se o front precisar esperar a API subir
+
+volumes:
+  postgres_data:
