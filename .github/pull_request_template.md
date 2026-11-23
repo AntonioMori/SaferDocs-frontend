@@ -1,38 +1,26 @@
-## 🚀 Descrição do Pull Request
+## Descrição
 
-*Descreva aqui o que foi feito*
+<!-- O que foi feito e por quê -->
 
----
+Closes #
 
-## 🛠 Tipo de Mudança
+## Tipo de mudança
 
-Marque a opção que melhor se aplica (baseado no nosso CONTRIBUTING.md):
+- [ ] `feat`: nova funcionalidade
+- [ ] `fix`: correção
+- [ ] `chore`: configuração, dependências ou limpeza
+- [ ] `docs`: documentação
+- [ ] `refactor` / `test`
 
-- [ ] `feat`: Nova funcionalidade.
-- [ ] `fix`: Correção de bug
-- [ ] `exp`: Experimento de Data Science (testando novas hipóteses e modelos).
-- [ ] `chore`: Manutenção ou atualização de libs.
-- [ ] `docs`: Apenas documentação.
+## Checklist
 
----
+- [ ] Branch criada a partir da `main` para uma única issue
+- [ ] Commits terminam com `Ref #<id da issue>`
+- [ ] Critérios de aceite da issue atendidos
+- [ ] Nenhum segredo, `.env` ou chave no diff
+- [ ] O front se comunica com o backend só pela API (`/api/v1`) e não introduz violações de CSP
+- [ ] README ou `.env.example` atualizados, se necessário
 
-## 🧪 Checklist de Qualidade
+## Evidências
 
-Antes de enviar para revisão, verifique se:
-
-- [ ] **Target Branch:** O PR está apontando para `develop` (salvo se for Hotfix p/ `main`)?
-- [ ] O código segue o padrão de estilo da equipe.
-- [ ] Realizei testes manuais na funcionalidade/dashboard.
-- [ ] Documentei novas funções ou mudanças complexas de lógica.
-- [ ] (Se Front/Back) Verifiquei o impacto no contrato de dados entre apps.
-
----
-
-## 📸 Screenshots / Evidências
-
----
-
-
-## 💬 Comentários Adicionais
----
-"Com grandes poderes, vêm grandes responsabilidades."
+<!-- Prints, saída de testes, exemplos de requisição/resposta -->

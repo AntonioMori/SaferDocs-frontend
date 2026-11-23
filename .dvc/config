@@ -1,5 +1,0 @@
-[core]
-    remote = s3-storage
-['remote "s3-storage"']
-    url = s3://dvc-dados-storage/dados-project-template
-    region = us-east-2

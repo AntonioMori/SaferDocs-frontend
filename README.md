@@ -1,5 +1,7 @@
-# 🔋 Template de Projetos - Fullstack Minimals
+# SaferDocs: Frontend
 
-Este é o template base para projetos que integram Software e Ciência de Dados. Ele utiliza uma estrutura de **Monorepo** para manter a API, o Frontend e os Modelos de ML no mesmo ciclo de vida.
+Frontend web do **SaferDocs**, sistema de assinatura digital de PDF (Projeto 3 de Segurança da Informação, UFRPE). Feito com React + Vite sobre o template Minimals (MUI).
 
-**Consulte o ```CONTRIBUTING.md``` para mais informações.**
+> Em construção. A arquitetura e as instruções de execução entram junto com a fundação da aplicação.
+
+Fluxo de trabalho: veja o [CONTRIBUTING.md](CONTRIBUTING.md).
