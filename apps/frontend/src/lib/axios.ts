@@ -1,6 +1,6 @@
-import type { AxiosRequestConfig } from 'axios';
+import type { AxiosResponse, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
 
-import axios from 'axios';
+import axios, { isAxiosError } from 'axios';
 
 import { CONFIG } from 'src/global-config';
 
@@ -63,14 +63,86 @@ axiosInstance.interceptors.request.use((config) => {
   return config;
 });
 
+// ----------------------------------------------------------------------
+
+/**
+ * Renovação automática do access token (REQ-29).
+ *
+ * O cliente HTTP não conhece a sessão: o módulo de autenticação registra aqui como renovar
+ * (`refresh`, que já é single-flight) e o que fazer quando não der (`onRefreshFailed`).
+ */
+type SessionRefresher = {
+  /** Troca o cookie por um access novo e o devolve. Chamadas simultâneas usam a mesma requisição. */
+  refresh: () => Promise<string>;
+  /** O refresh falhou (expirado, revogado ou reuso, REQ-30): limpar a sessão e ir para o login. */
+  onRefreshFailed: () => void;
+};
+
+let sessionRefresher: SessionRefresher | null = null;
+
+export function registerSessionRefresher(refresher: SessionRefresher | null): void {
+  sessionRefresher = refresher;
+}
+
+/**
+ * Rotas que respondem 401 por credencial errada (senha, código, passkey) ou pelo próprio refresh,
+ * não por access vencido: nunca disparam a renovação. Comparação por prefixo do caminho.
+ */
+const NO_REFRESH_PREFIXES = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/passkeys/login/'];
+
+const skipsRefresh = (url: string | undefined) =>
+  !url || NO_REFRESH_PREFIXES.some((prefix) => url.startsWith(prefix));
+
+type RetriableConfig = InternalAxiosRequestConfig & { _sessionRetried?: boolean };
+
+const bearerOf = (config: InternalAxiosRequestConfig) =>
+  String(config.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '') || null;
+
+/**
+ * 401 numa requisição que levava o access token: renova uma única vez e repete a original.
+ *
+ * - Se outra requisição já renovou enquanto esta estava no ar, só repete com o token atual.
+ * - Várias requisições que falham juntas compartilham o mesmo refresh (single-flight).
+ * - A requisição repetida que falhar de novo não renova outra vez (sem laço).
+ */
+async function retryWithFreshToken(error: unknown): Promise<AxiosResponse> {
+  if (!isAxiosError(error) || error.response?.status !== 401 || !error.config || !sessionRefresher) {
+    throw toApiError(error);
+  }
+
+  const config = error.config as RetriableConfig;
+  const sentToken = bearerOf(config);
+
+  if (config._sessionRetried || !sentToken || skipsRefresh(config.url)) {
+    throw toApiError(error);
+  }
+
+  config._sessionRetried = true;
+
+  const current = getAccessToken();
+  let token: string;
+
+  if (current && current !== sentToken) {
+    token = current;
+  } else {
+    try {
+      token = await sessionRefresher.refresh();
+    } catch {
+      sessionRefresher.onRefreshFailed();
+      throw toApiError(error);
+    }
+  }
+
+  config.headers.set('Authorization', `Bearer ${token}`);
+
+  return axiosInstance(config);
+}
+
 /**
  * Normaliza todo erro de resposta em `ApiError` (RNF-12). Quem chamar a API pode usar
  * `isApiError(error)` e ler `code`, `message`, `fields` e `requestId`.
  */
-axiosInstance.interceptors.response.use(
-  (response) => response,
-  (error) => Promise.reject(toApiError(error))
-);
+axiosInstance.interceptors.response.use((response) => response, retryWithFreshToken);
 
 export default axiosInstance;
 

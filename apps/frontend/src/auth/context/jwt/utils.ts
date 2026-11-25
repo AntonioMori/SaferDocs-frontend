@@ -2,8 +2,8 @@ import type { TokenResponse } from '../../types';
 
 import { paths } from 'src/routes/paths';
 
-import axios, { endpoints } from 'src/lib/axios';
 import { setAccessToken } from 'src/lib/access-token';
+import axios, { endpoints, registerSessionRefresher } from 'src/lib/axios';
 
 import { toast } from 'src/components/snackbar';
 
@@ -16,6 +16,7 @@ import { toast } from 'src/components/snackbar';
  * - O refresh token fica no cookie HttpOnly `Path=/api/v1/auth`; o JS nunca o lê.
  * - Ao abrir ou recarregar a página, `refreshSession()` troca o cookie por um access novo.
  * - Pouco antes de o access vencer, a sessão é renovada sozinha; se não der, vai para o login.
+ * - Se mesmo assim uma requisição voltar 401, o interceptor do axios renova e repete (REQ-29).
  */
 
 /** Renova um pouco antes do fim, para não mandar requisição com token prestes a vencer. */
@@ -85,9 +86,17 @@ export function refreshSession(): Promise<TokenResponse> {
 
 // ----------------------------------------------------------------------
 
-/** Encerra a sessão local, avisa e manda para o login (recarregar limpa todo o estado em memória). */
+let expiring = false;
+
+/**
+ * Encerra a sessão local, avisa e manda para o login (recarregar limpa todo o estado em memória).
+ * Várias requisições podem falhar juntas: o aviso e o redirecionamento acontecem uma vez só.
+ */
 export function expireSession(message = SESSION_EXPIRED_MESSAGE) {
   setSession(null);
+
+  if (expiring) return;
+  expiring = true;
 
   toast.error(message);
 
@@ -102,3 +111,9 @@ function renewInBackground() {
   // Sem log do erro: um ApiError carrega a requisição original na `cause`.
   refreshSession().catch(() => expireSession());
 }
+
+// Ensina o cliente HTTP a renovar o access quando uma requisição voltar 401 (REQ-29).
+registerSessionRefresher({
+  refresh: () => refreshSession().then((data) => data.access_token),
+  onRefreshFailed: () => expireSession(),
+});

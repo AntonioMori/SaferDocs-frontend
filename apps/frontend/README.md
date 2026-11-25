@@ -104,6 +104,21 @@ leva ao `returnTo` ou a `/assinar`.
   aviso "Sua sessão expirou" e a página vai para o login.
 - Login (senha, TOTP ou passkey) abre a sessão com `signIn(resposta)` do `useAuthContext()`.
 
+### Renovação automática (REQ-29)
+
+Se uma requisição que levava o access token voltar **401**, o interceptor do axios:
+
+1. renova com `POST /auth/refresh`. Várias requisições que falham juntas compartilham **um único**
+   refresh (single-flight);
+2. repete a requisição original com o token novo, uma vez só (sem laço). Se outra requisição já
+   tiver renovado enquanto esta estava no ar, só repete com o token atual;
+3. se o refresh falhar (expirado, revogado ou reuso detectado, REQ-30), limpa a sessão, mostra
+   "Sua sessão expirou. Entre de novo." uma vez e vai para o login.
+
+As rotas de login, cadastro, refresh e login por passkey nunca disparam a renovação: o 401 delas
+vem de credencial errada. O `src/lib/axios.ts` não conhece a sessão. O módulo
+`src/auth/context/jwt` registra como renovar com `registerSessionRefresher`.
+
 ## Arquitetura de pastas
 
 ```
