@@ -13,6 +13,7 @@ Requisitos: Node.js >= 22.12 e Yarn (`yarn@1.22.22`).
 
 ```sh
 yarn install --frozen-lockfile
+cp .env.example .env   # ajuste se precisar
 yarn dev        # http://localhost:3039
 ```
 
@@ -32,7 +33,7 @@ O gerenciador de pacotes oficial é o **Yarn** (`packageManager: yarn@1.22.22`, 
 
 ## Configuração (`.env`)
 
-Tudo que muda entre ambientes vem de variáveis `VITE_*` no `.env` (nenhuma URL fica no código):
+O modelo com todas as variáveis é o `.env.example`. Tudo que muda entre ambientes vem de variáveis `VITE_*` no `.env` (nenhuma URL fica no código):
 
 | Variável            | Para quê                                                            |
 | :------------------ | :------------------------------------------------------------------ |
