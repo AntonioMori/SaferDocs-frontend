@@ -2,6 +2,8 @@ import type { AuthUser, AuthState, TokenResponse } from '../../types';
 
 import { useMemo, useState, useEffect, useCallback } from 'react';
 
+import axios, { endpoints } from 'src/lib/axios';
+
 import { AuthContext } from '../auth-context';
 import { setSession, refreshSession } from './utils';
 
@@ -38,6 +40,19 @@ export function AuthProvider({ children }: Props) {
     [setState]
   );
 
+  const signOut = useCallback(async () => {
+    try {
+      await axios.post(endpoints.auth.signOut);
+    } catch {
+      // A sessão local acaba de qualquer jeito. Sem log: o ApiError carrega a requisição na `cause`.
+    } finally {
+      // Sai da memória o token e o usuário. As telas logadas desmontam e o AuthGuard leva ao login,
+      // inclusive se o usuário voltar no histórico.
+      setSession(null);
+      setState({ user: null, loading: false });
+    }
+  }, []);
+
   const updateUser = useCallback(
     (patch: Partial<AuthUser>) => {
       setState((prev) => (prev.user ? { ...prev, user: { ...prev.user, ...patch } } : prev));
@@ -61,12 +76,13 @@ export function AuthProvider({ children }: Props) {
       user: state.user,
       checkUserSession,
       signIn,
+      signOut,
       updateUser,
       loading: status === 'loading',
       authenticated: status === 'authenticated',
       unauthenticated: status === 'unauthenticated',
     }),
-    [checkUserSession, signIn, updateUser, state.user, status]
+    [checkUserSession, signIn, signOut, updateUser, state.user, status]
   );
 
   return <AuthContext value={memoizedValue}>{children}</AuthContext>;

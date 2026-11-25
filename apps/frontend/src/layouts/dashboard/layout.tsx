@@ -18,6 +18,7 @@ import { VerticalDivider } from './content';
 import { NavVertical } from './nav-vertical';
 import { NavHorizontal } from './nav-horizontal';
 import { MenuButton } from '../components/menu-button';
+import { AccountMenu } from '../components/account-menu';
 import { SettingsButton } from '../components/settings-button';
 import { navData as dashboardNavData } from '../nav-config-dashboard';
 import { dashboardLayoutVars, dashboardNavColorVars } from './css-vars';
@@ -126,6 +127,9 @@ export function DashboardLayout({
         <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0, sm: 0.75 } }}>
           {/** @slot Settings button */}
           <SettingsButton />
+
+          {/** @slot Conta e logout (REQ-21) */}
+          <AccountMenu />
         </Box>
       ),
     };
