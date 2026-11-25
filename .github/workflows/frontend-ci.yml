@@ -1,0 +1,58 @@
+name: Frontend CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Typecheck, lint, build e auditoria
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/frontend
+    env:
+      # O build valida o env (RNF-08); estes valores só servem ao CI e não são segredos.
+      VITE_API_BASE_URL: /api/v1
+      VITE_SERVER_URL: http://localhost:8000
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: apps/frontend/yarn.lock
+
+      - name: Instalar dependências (lockfile congelado)
+        run: yarn install --frozen-lockfile
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Build
+        run: yarn build
+
+      # REQ-66: falha o CI se houver vulnerabilidade de severidade alta ou crítica.
+      # O yarn 1 devolve um bitmask (1 info, 2 low, 4 moderate, 8 high, 16 critical) e conta
+      # todas as severidades mesmo com --level, então só os bits 8 e 16 reprovam o job.
+      - name: Auditoria de dependências (nível high)
+        run: |
+          status=0
+          yarn audit --level high || status=$?
+          if [ $((status & 24)) -ne 0 ]; then
+            echo "Vulnerabilidade high ou critical encontrada (código $status)."
+            exit 1
+          fi
