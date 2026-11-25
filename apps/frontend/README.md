@@ -75,6 +75,7 @@ try {
 | `/conta/seguranca`  | Segurança da conta | Logado      |
 | `/conta/sessoes`    | Sessões ativas     | Logado      |
 | `/conta/passkeys`   | Passkeys           | Logado      |
+| `/conta/atividade`  | Atividade de segurança | Logado  |
 | `/error/403`        | Acesso negado      | Pública     |
 | `/error/404`        | Não encontrada     | Pública     |
 | `/error/500`        | Erro interno       | Pública     |
@@ -146,6 +147,16 @@ Em **Conta → Segurança**, o cartão "Verificação em duas etapas":
   aceito em minúsculas e sem hífens e vale uma vez.
 - "Gerar novos códigos de recuperação" (Conta → Segurança) pede um código do app e invalida
   todos os anteriores.
+
+### Atividade de segurança (REQ-58)
+
+- O login e o refresh informam `unseen_security_events`, que fica no `AuthProvider`.
+- Se houver eventos pendentes, a área logada (`SecurityEventsHighlight`) busca
+  `GET /security/events`, mostra os não vistos num diálogo em destaque e já os marca como vistos
+  (`POST /security/events/seen`). Cada evento aparece em destaque **uma vez**.
+- **Conta → Atividade** (`/conta/atividade`) tem o histórico: IP novo, troca de IP na sessão,
+  códigos TOTP errados repetidos (REQ-16), 2FA ligado ou desligado, troca de senha, reuso de
+  token de sessão e passkey suspeita. Cada evento mostra a data e a origem (IP e navegador).
 
 ### Logout (REQ-21)
 

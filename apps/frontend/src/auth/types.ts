@@ -36,6 +36,8 @@ export const isMfaRequired = (data: LoginResponse): data is MfaRequiredResponse 
 export type AuthState = {
   user: UserType;
   loading: boolean;
+  /** Eventos de segurança ainda não vistos, do último login ou refresh (REQ-58). */
+  unseenSecurityEvents: number;
 };
 
 export type AuthContextValue = {
@@ -43,6 +45,10 @@ export type AuthContextValue = {
   loading: boolean;
   authenticated: boolean;
   unauthenticated: boolean;
+  /** Eventos de segurança não vistos: a área logada os destaca uma vez (REQ-58). */
+  unseenSecurityEvents: number;
+  /** Zera o contador depois de os eventos serem mostrados e marcados como vistos. */
+  clearUnseenSecurityEvents: () => void;
   /** Recupera a sessão pelo cookie do refresh (F5, nova aba). */
   checkUserSession: () => Promise<void>;
   /** Abre a sessão com a resposta de um login (senha, TOTP ou passkey). */

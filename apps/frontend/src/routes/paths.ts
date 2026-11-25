@@ -22,6 +22,7 @@ export const paths = {
     seguranca: `${ROOTS.CONTA}/seguranca`,
     sessoes: `${ROOTS.CONTA}/sessoes`,
     passkeys: `${ROOTS.CONTA}/passkeys`,
+    atividade: `${ROOTS.CONTA}/atividade`,
   },
   // Erros
   page403: `${ROOTS.ERROR}/403`,
