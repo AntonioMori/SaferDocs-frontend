@@ -4,13 +4,17 @@ on:
   pull_request:
   push:
     branches: [main]
+  # Semanal: pega vulnerabilidade nova mesmo sem commit (segunda, 06:00 UTC).
+  schedule:
+    - cron: '0 6 * * 1'
 
 permissions:
   contents: read
 
 concurrency:
   group: frontend-ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Na main nunca cancela a execução em andamento; só PRs.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   frontend:
@@ -46,13 +50,24 @@ jobs:
         run: yarn build
 
       # REQ-66: falha o CI se houver vulnerabilidade de severidade alta ou crítica.
-      # O yarn 1 devolve um bitmask (1 info, 2 low, 4 moderate, 8 high, 16 critical) e conta
-      # todas as severidades mesmo com --level, então só os bits 8 e 16 reprovam o job.
+      # Falha fechado: o yarn 1 sai com um bitmask de severidades (e com erro de rede também),
+      # então a decisão sai do JSON. Sem a linha `auditSummary` o audit não rodou de verdade
+      # (registry fora do ar, resposta quebrada) e o job reprova em vez de passar em silêncio.
       - name: Auditoria de dependências (nível high)
         run: |
-          status=0
-          yarn audit --level high || status=$?
-          if [ $((status & 24)) -ne 0 ]; then
-            echo "Vulnerabilidade high ou critical encontrada (código $status)."
+          yarn audit --json > audit.json || true
+          if ! grep -q '"type":"auditSummary"' audit.json; then
+            echo "O yarn audit não devolveu o resumo (auditSummary). Auditoria não concluída."
+            exit 1
+          fi
+          blocking=$(node -e "
+            const lines = require('fs').readFileSync('audit.json', 'utf8').split('\n').filter(Boolean);
+            const summary = lines.map((l) => JSON.parse(l)).find((l) => l.type === 'auditSummary');
+            const v = summary.data.vulnerabilities;
+            console.log(v.high + v.critical);
+          ")
+          echo "Vulnerabilidades high ou critical: $blocking"
+          if [ "$blocking" -ne 0 ]; then
+            echo "Vulnerabilidade high ou critical encontrada."
             exit 1
           fi
