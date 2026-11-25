@@ -104,6 +104,17 @@ leva ao `returnTo` ou a `/assinar`.
   aviso "Sua sessão expirou" e a página vai para o login.
 - Login (senha, TOTP ou passkey) abre a sessão com `signIn(resposta)` do `useAuthContext()`.
 
+### Login com 2FA (REQ-15)
+
+1. `POST /auth/login` com a senha certa numa conta com 2FA devolve só
+   `{mfa_required, mfa_token, expires_in}`. Ainda não há access token nem cookie.
+2. O `mfa_token` fica **só em memória** (`src/auth/context/jwt/mfa-challenge.ts`), fora da URL
+   e do storage, e a tela vai para `/2fa`, levando junto o `returnTo`.
+3. Em `/2fa`, `POST /auth/login/totp` com o código de 6 dígitos devolve a sessão normal
+   (`signIn`). Sem código válido, ninguém entra.
+4. Se o desafio vencer (5 min), passar de 5 tentativas ou a página recarregar, a pessoa volta ao
+   login.
+
 ### Logout (REQ-21)
 
 O menu da conta no cabeçalho (`src/layouts/components/account-menu.tsx`) tem o botão **Sair**,

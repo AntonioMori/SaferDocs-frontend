@@ -15,6 +15,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
+import { useRouter, useSearchParams } from 'src/routes/hooks';
 
 import { emailSchema } from 'src/lib/schemas';
 import { toApiError } from 'src/lib/api-error';
@@ -26,6 +27,7 @@ import { PasskeyLoginButton } from 'src/sections/auth/passkey-login-button';
 
 import { isMfaRequired } from '../types';
 import { signInWithPassword } from '../api/auth';
+import { startMfaChallenge } from '../context/jwt';
 import { FormHead } from '../components/form-head';
 import { useCooldown, useAuthContext } from '../hooks';
 import { FormDivider } from '../components/form-divider';
@@ -51,12 +53,13 @@ type LoginSchemaType = z.input<typeof LoginSchema>;
  * contexto, e o GuestGuard da rota leva ao `returnTo` (ou à tela de assinatura).
  */
 export function LoginView() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { signIn } = useAuthContext();
   const showPassword = useBoolean();
   const cooldown = useCooldown();
 
   const [error, setError] = useState<ApiError | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
   const [passkeyLoading, setPasskeyLoading] = useState(false);
 
   const methods = useForm<LoginSchemaType>({
@@ -73,13 +76,20 @@ export function LoginView() {
 
   const onSubmit = handleSubmit(async (values) => {
     setError(null);
-    setNotice(null);
 
     try {
       const data = await signInWithPassword(values.email, values.password);
 
+      // Conta com 2FA: nenhum token ainda, só o desafio, que fica em memória (REQ-15).
       if (isMfaRequired(data)) {
-        setNotice('Esta conta exige o segundo fator, que ainda não está disponível nesta tela.');
+        startMfaChallenge(data);
+
+        const returnTo = searchParams.get('returnTo');
+        router.push(
+          returnTo
+            ? `${paths.doisFatores}?${new URLSearchParams({ returnTo }).toString()}`
+            : paths.doisFatores
+        );
         return;
       }
 
@@ -111,12 +121,6 @@ export function LoginView() {
           </>
         }
       />
-
-      {notice && (
-        <Alert severity="info" sx={{ mb: 3 }}>
-          {notice}
-        </Alert>
-      )}
 
       {error && (
         <Alert severity="error" role="alert" sx={{ mb: 3 }}>

@@ -165,6 +165,7 @@ export const endpoints = {
   auth: {
     me: '/auth/me',
     signIn: '/auth/login',
+    signInTotp: '/auth/login/totp',
     refresh: '/auth/refresh',
     signOut: '/auth/logout',
     signUp: '/auth/register',
