@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react';
 import checker from 'vite-plugin-checker';
 
 import { parseEnv } from './src/env-schema';
+import { devHeaders, previewHeaders } from './security-headers';
 
 // ----------------------------------------------------------------------
 
@@ -50,7 +51,7 @@ export default defineConfig(({ mode, command }) => {
         },
       ],
     },
-    server: { port: PORT, host: true, proxy },
-    preview: { port: PORT, host: true, proxy },
+    server: { port: PORT, host: true, proxy, headers: devHeaders },
+    preview: { port: PORT, host: true, proxy, headers: previewHeaders },
   };
 });

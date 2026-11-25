@@ -115,3 +115,49 @@ autenticação ficam em `auth/view`. Importe sempre por `src/...`.
 Baseado no template **Minimals (versão starter/lite)**. Foram mantidos apenas o tema, os layouts
 de autenticação, dashboard e simples, e os componentes necessários para a aplicação. Demos e
 páginas de exemplo foram substituídos pelo esqueleto do SaferDocs.
+
+## CSP e headers do front (REQ-37)
+
+A página é servida pelo Vite (`yarn dev` e `yarn start`) ou, no deploy, pelo nginx. O backend já manda a CSP `default-src 'self'; script-src 'self'; object-src 'none'; frame-ancestors 'none'` nas respostas da API. Para o HTML do front, a política mínima que a aplicação precisa é:
+
+```
+Content-Security-Policy:
+  default-src 'self';
+  script-src 'self';
+  style-src 'self' 'unsafe-inline';
+  img-src 'self' data: blob:;
+  font-src 'self' data:;
+  connect-src 'self';
+  worker-src 'self' blob:;
+  object-src 'none';
+  base-uri 'self';
+  form-action 'self';
+  frame-ancestors 'none'
+```
+
+| Diretiva | Por quê |
+| :--- | :--- |
+| `script-src 'self'` | Sem script inline no `index.html` e sem CDN. O worker do pdf.js é empacotado pelo Vite (`pdfjs-dist/build/pdf.worker.min.mjs?url`) e sai do próprio domínio. |
+| `style-src ... 'unsafe-inline'` | O Emotion/MUI injeta `<style>` em tempo de execução. É o único relaxamento. |
+| `img-src ... data: blob:` | Pré-visualização do PDF (canvas) e imagens pequenas inlinadas pelo build. |
+| `font-src 'self' data:` | Fontes locais (`@fontsource`), nenhuma do Google Fonts. |
+| `connect-src 'self'` | A API é chamada pela mesma origem (`/api/v1`): proxy do Vite em dev, nginx no deploy. |
+| `worker-src 'self' blob:` | Worker do pdf.js. |
+
+Também devem ir `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin` e `Permissions-Policy: camera=(), microphone=(), geolocation=()` (REQ-39 a 42).
+
+- Os headers ficam em `security-headers.ts` e entram em `server.headers` e `preview.headers` do `vite.config.ts`. O `yarn dev` só relaxa `script-src` (o Vite injeta um script inline do Fast Refresh) e `connect-src` (WebSocket do HMR). O `yarn start` (preview do build) usa a política fechada acima: é com ele que se confere um console sem violações.
+- Ícones: o `Iconify` do template registra os conjuntos em `src/components/iconify/icon-sets.ts` com `addCollection`. Ícone que não estiver ali seria buscado em `api.iconify.design`, que a CSP bloqueia; por isso o nome do ícone é tipado e o `tsc` barra um ícone não registrado. Para usar um novo, adicione-o ao `icon-sets.ts`.
+- Nada de CDN: não há `<script>`, `<link>` ou imagem de domínio externo.
+
+Exemplo de nginx para o deploy:
+
+```nginx
+add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'" always;
+add_header X-Content-Type-Options "nosniff" always;
+add_header X-Frame-Options "DENY" always;
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+location /api/ { proxy_pass http://backend:8000; }
+location / { try_files $uri /index.html; }
+```
