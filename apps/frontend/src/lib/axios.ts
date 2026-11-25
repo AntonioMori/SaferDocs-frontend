@@ -185,6 +185,10 @@ export const endpoints = {
       loginVerify: '/auth/passkeys/login/verify',
     },
   },
+  sessions: {
+    list: '/sessions',
+    item: (id: string) => `/sessions/${encodeURIComponent(id)}`,
+  },
   documents: {
     sign: '/documents/sign',
     signatures: '/documents/signatures',
