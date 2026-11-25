@@ -6,9 +6,6 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
-import { paths } from 'src/routes/paths';
-import { useRouter } from 'src/routes/hooks';
-
 import { emailSchema } from 'src/lib/schemas';
 import axios, { endpoints } from 'src/lib/axios';
 
@@ -17,21 +14,19 @@ import { showApiError } from 'src/components/hook-form/api-error';
 import { PasskeyLoginButton } from 'src/sections/auth/passkey-login-button';
 
 import { useAuthContext } from '../hooks';
-import { setSession } from '../context/jwt';
 import { FormDivider } from '../components/form-divider';
 
 // ----------------------------------------------------------------------
 
 /**
- * Login com e-mail e senha: `POST /auth/login`, e o token vai para o `setSession` do contexto jwt
- * (sessionStorage + header Authorization do axios).
+ * Login com e-mail e senha: `POST /auth/login`. A resposta abre a sessão pelo `signIn` do contexto
+ * (access token só em memória, REQ-20).
  *
  * Base do REQ-04. Ainda falta, a cargo de quem responde pelo REQ-04: o passo do segundo fator
  * (`mfa_token`) e os detalhes finais da tela (recuperação de senha, bloqueio, textos).
  */
 export function LoginView() {
-  const router = useRouter();
-  const { checkUserSession } = useAuthContext();
+  const { signIn } = useAuthContext();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -67,9 +62,8 @@ export function LoginView() {
         return;
       }
 
-      await setSession(data.access_token);
-      await checkUserSession?.();
-      router.push(paths.assinar);
+      // O GuestGuard da rota leva ao `returnTo` (ou à tela de assinatura).
+      signIn(data);
     } catch (error) {
       showApiError(error);
     } finally {

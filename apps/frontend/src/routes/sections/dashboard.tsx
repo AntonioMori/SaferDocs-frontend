@@ -7,6 +7,8 @@ import { DashboardLayout } from 'src/layouts/dashboard';
 
 import { LoadingScreen } from 'src/components/loading-screen';
 
+import { AuthGuard } from 'src/auth/guard';
+
 import { paths } from '../paths';
 
 // ----------------------------------------------------------------------
@@ -16,16 +18,15 @@ const SegurancaPage = lazy(() => import('src/pages/conta/seguranca'));
 const SessoesPage = lazy(() => import('src/pages/conta/sessoes'));
 const PasskeysPage = lazy(() => import('src/pages/conta/passkeys'));
 
-/**
- * NOTE: ainda sem AuthGuard. As rotas ficam abertas até a issue de sessão
- * (REQ-20) entregar o provider de autenticação; depois, envolver com <AuthGuard>.
- */
+/** Área logada: sem sessão, o AuthGuard manda para o login com `returnTo` (REQ-20). */
 const dashboardLayout = () => (
-  <DashboardLayout>
-    <Suspense fallback={<LoadingScreen />}>
-      <Outlet />
-    </Suspense>
-  </DashboardLayout>
+  <AuthGuard>
+    <DashboardLayout>
+      <Suspense fallback={<LoadingScreen />}>
+        <Outlet />
+      </Suspense>
+    </DashboardLayout>
+  </AuthGuard>
 );
 
 export const dashboardRoutes: RouteObject[] = [

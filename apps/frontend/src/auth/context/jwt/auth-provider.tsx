@@ -1,48 +1,49 @@
-import type { AuthState } from '../../types';
+import type { AuthUser, AuthState, TokenResponse } from '../../types';
 
-import { useSetState } from 'minimal-shared/hooks';
-import { useMemo, useEffect, useCallback } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 
-import axios, { endpoints } from 'src/lib/axios';
-
-import { JWT_STORAGE_KEY } from './constant';
 import { AuthContext } from '../auth-context';
-import { setSession, isValidToken } from './utils';
+import { setSession, refreshSession } from './utils';
 
 // ----------------------------------------------------------------------
-
-/**
- * NOTE:
- * We only build demo at basic level.
- * Customer will need to do some extra handling yourself if you want to extend the logic and other features...
- */
 
 type Props = {
   children: React.ReactNode;
 };
 
+/**
+ * Estado da autenticação (REQ-20). O usuário e o access token vivem só em memória; ao montar,
+ * o provider tenta recuperar a sessão pelo cookie do refresh, e é isso que mantém o login no F5.
+ */
 export function AuthProvider({ children }: Props) {
-  const { state, setState } = useSetState<AuthState>({ user: null, loading: true });
+  const [state, setState] = useState<AuthState>({ user: null, loading: true });
 
   const checkUserSession = useCallback(async () => {
     try {
-      const accessToken = sessionStorage.getItem(JWT_STORAGE_KEY);
+      const data = await refreshSession();
 
-      if (accessToken && isValidToken(accessToken)) {
-        await setSession(accessToken);
-
-        // `/auth/me` devolve o usuário direto, não `{ user }`.
-        const { data: user } = await axios.get(endpoints.auth.me);
-
-        setState({ user: { ...user, accessToken }, loading: false });
-      } else {
-        setState({ user: null, loading: false });
-      }
+      setState({ user: data.user, loading: false });
     } catch {
-      // Sem log do erro: um ApiError carrega a requisição original (senha, token) na `cause`.
+      // Sem cookie ou refresh inválido: só não há sessão. Sem log do erro, pois um ApiError
+      // carrega a requisição original na `cause`.
       setState({ user: null, loading: false });
     }
   }, [setState]);
+
+  const signIn = useCallback(
+    (data: TokenResponse) => {
+      setSession(data);
+      setState({ user: data.user, loading: false });
+    },
+    [setState]
+  );
+
+  const updateUser = useCallback(
+    (patch: Partial<AuthUser>) => {
+      setState((prev) => (prev.user ? { ...prev, user: { ...prev.user, ...patch } } : prev));
+    },
+    [setState]
+  );
 
   useEffect(() => {
     checkUserSession();
@@ -59,11 +60,13 @@ export function AuthProvider({ children }: Props) {
     () => ({
       user: state.user,
       checkUserSession,
+      signIn,
+      updateUser,
       loading: status === 'loading',
       authenticated: status === 'authenticated',
       unauthenticated: status === 'unauthenticated',
     }),
-    [checkUserSession, state.user, status]
+    [checkUserSession, signIn, updateUser, state.user, status]
   );
 
   return <AuthContext value={memoizedValue}>{children}</AuthContext>;

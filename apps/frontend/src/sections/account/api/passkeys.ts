@@ -1,3 +1,4 @@
+import type { TokenResponse } from 'src/auth/types';
 import type {
   PublicKeyCredentialRequestOptionsJson,
   PublicKeyCredentialCreationOptionsJson,
@@ -22,13 +23,8 @@ export type PasskeyItem = {
   last_used_at: string | null;
 };
 
-export type PasskeyLoginResult = {
-  access_token: string;
-  token_type?: string;
-  expires_in?: number;
-  user?: Record<string, unknown>;
-  unseen_security_events?: number;
-};
+/** O login por passkey devolve o mesmo `TokenOut` do login por senha. */
+export type PasskeyLoginResult = TokenResponse;
 
 function assertPasskeySupported() {
   if (!isPasskeySupported()) {
