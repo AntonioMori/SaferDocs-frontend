@@ -1,5 +1,7 @@
 export * from './fields';
 
+export * from './api-error';
+
 export * from './rhf-select';
 
 export * from './rhf-rating';

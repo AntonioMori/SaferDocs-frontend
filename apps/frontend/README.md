@@ -45,6 +45,24 @@ Variáveis `VITE_*` ficam visíveis no navegador: nunca ponha segredo nelas.
 
 O env é validado com zod (`src/env-schema.ts`) ao subir: `yarn dev` e `yarn build` falham com a lista das variáveis ausentes ou inválidas, e o app também recusa iniciar no navegador (`src/global-config.ts`). `VITE_API_BASE_URL` é obrigatória; em dev, `VITE_SERVER_URL` também.
 
+## Erros da API
+
+O backend responde todo erro como `{code, message, timestamp, request_id, fields?}`. O interceptor
+de `src/lib/axios.ts` converte isso em `ApiError` (`src/lib/api-error.ts`), com `code`, `message`,
+`status`, `requestId` e `fields`. Falha de rede vira `NET_000` e resposta fora do padrão vira
+`UNKNOWN`. Em formulários (`src/components/hook-form/api-error.ts`):
+
+```ts
+try {
+  await axios.post(endpoints.auth.signUp, values);
+} catch (error) {
+  handleApiFormError(methods, error); // campo certo no `fields`, senão toast com a mensagem
+}
+```
+
+`setApiFieldErrors` só aplica os campos (aceita `mapField` para nomes diferentes) e
+`showApiError` só mostra o toast.
+
 ## Rotas
 
 | Rota                | Página             | Acesso      |
