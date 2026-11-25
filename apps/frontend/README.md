@@ -1,54 +1,84 @@
-## Prerequisites
+# SaferDocs - Frontend
 
-- Node.js >=22 (Recommended)
+Interface web do SaferDocs: assinatura de PDF, verificação pública de documento e gestão de
+segurança da conta (2FA, sessões, passkeys).
 
-## Installation
+**Stack:** React 19 + Vite + TypeScript, template **Minimals (MUI/Emotion)** no lugar do Tailwind
+(RNF-03, combinado com o professor). Roteamento com `react-router`, formulários com
+`react-hook-form` + `zod`.
 
-**Using Yarn (Recommended)**
+## Como rodar
 
-```sh
-yarn install
-yarn dev
-```
-
-**Using Npm**
+Requisitos: Node.js >= 22.12 e Yarn (`yarn@1.22.22`).
 
 ```sh
-npm i
-npm run dev
+yarn install --frozen-lockfile
+yarn dev        # http://localhost:3039
 ```
 
-## Build
+A porta 3039 é a origem liberada no CORS do backend. Se o `yarn` não estiver instalado
+globalmente, use `npx --yes yarn@1.22.22 <comando>`.
 
-```sh
-yarn build
-# or
-npm run build
+| Script            | O que faz                                |
+| :---------------- | :--------------------------------------- |
+| `yarn dev`        | Servidor de desenvolvimento              |
+| `yarn build`      | `tsc` + build de produção em `dist/`     |
+| `yarn start`      | Serve o build (`vite preview`)           |
+| `yarn lint`       | ESLint em `src/`                         |
+| `yarn fm:check`   | Confere a formatação (Prettier)          |
+| `yarn tsc:check`  | Checagem de tipos sem gerar arquivos     |
+
+O gerenciador de pacotes oficial é o **Yarn** (`packageManager: yarn@1.22.22`, `yarn.lock`).
+
+## Rotas
+
+| Rota                | Página             | Acesso      |
+| :------------------ | :----------------- | :---------- |
+| `/entrar`           | Login              | Visitante   |
+| `/cadastro`         | Cadastro           | Visitante   |
+| `/2fa`              | Passo do TOTP      | Visitante   |
+| `/verificar`        | Verificar PDF      | **Pública** |
+| `/assinar`          | Assinar PDF        | Logado      |
+| `/conta/seguranca`  | Segurança da conta | Logado      |
+| `/conta/sessoes`    | Sessões ativas     | Logado      |
+| `/conta/passkeys`   | Passkeys           | Logado      |
+| `/error/403`        | Acesso negado      | Pública     |
+| `/error/404`        | Não encontrada     | Pública     |
+| `/error/500`        | Erro interno       | Pública     |
+
+As páginas são esqueletos (`PageStub`) com links para todas as outras. Cada issue de
+funcionalidade substitui o esqueleto pela tela real. Os guards (`src/auth/guard`) existem, mas
+ainda não envolvem as rotas: entram com o provider de sessão (REQ-20).
+
+## Arquitetura de pastas
+
+```
+src/
+├─ main.tsx, app.tsx       # entrada, providers (tema, configurações, auth)
+├─ global-config.ts        # configuração do app (CONFIG)
+├─ lib/axios.ts            # cliente HTTP
+├─ routes/
+│  ├─ paths.ts             # única fonte dos caminhos
+│  ├─ sections/            # definição das rotas (index.tsx, dashboard.tsx)
+│  ├─ components/, hooks/  # RouterLink, ErrorBoundary, useRouter etc.
+├─ pages/                  # uma página por rota, só metadados + a view
+├─ sections/               # telas por domínio
+│  ├─ sign/view/           # assinatura de PDF
+│  ├─ verify/view/         # verificação pública
+│  ├─ account/view/        # segurança, sessões, passkeys
+│  └─ error/               # 403, 404, 500
+├─ auth/                   # contexto, guards, views de login/cadastro/2FA
+├─ layouts/                # auth-centered, dashboard, simple e core
+├─ components/             # componentes reutilizáveis (hook-form, page-stub, iconify...)
+├─ theme/                  # tema MUI (cores, tipografia, overrides)
+└─ assets/                 # ilustrações e ícones SVG
 ```
 
-## Mock server
+Convenções: `pages/` não tem lógica; a tela mora em `sections/<domínio>/view`; telas de
+autenticação ficam em `auth/view`. Importe sempre por `src/...`.
 
-By default we provide demo data from : `https://api-dev-minimal-[version].vercel.app`
+## Origem do código
 
-To set up your local server:
-
-- **Guide:** [https://docs.minimals.cc/mock-server](https://docs.minimals.cc/mock-server).
-
-- **Resource:** [Download](https://www.dropbox.com/scl/fo/bopqsyaatc8fbquswxwww/AKgu6V6ZGmxtu22MuzsL5L4?rlkey=8s55vnilwz2d8nsrcmdo2a6ci&dl=0).
-
-## Full version
-
-- Create React App ([migrate to CRA](https://docs.minimals.cc/migrate-to-cra/)).
-- Next.js
-- Vite.js
-
-## Starter version
-
-- To remove unnecessary components. This is a simplified version ([https://starter.minimals.cc/](https://starter.minimals.cc/))
-- Good to start a new project. You can copy components from the full version.
-- Make sure to install the dependencies exactly as compared to the full version.
-
----
-
-**NOTE:**
-_When copying folders remember to also copy hidden files like .env. This is important because .env files often contain environment variables that are crucial for the application to run correctly._
+Baseado no template **Minimals (versão starter/lite)**. Foram mantidos apenas o tema, os layouts
+de autenticação, dashboard e simples, e os componentes necessários para a aplicação. Demos e
+páginas de exemplo foram substituídos pelo esqueleto do SaferDocs.

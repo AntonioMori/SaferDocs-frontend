@@ -1,57 +1,45 @@
 import type { RouteObject } from 'react-router';
 
-import { Outlet } from 'react-router';
 import { lazy, Suspense } from 'react';
+import { Outlet, Navigate } from 'react-router';
 
-import { CONFIG } from 'src/global-config';
 import { DashboardLayout } from 'src/layouts/dashboard';
 
 import { LoadingScreen } from 'src/components/loading-screen';
 
-import { AuthGuard } from 'src/auth/guard';
-
-import { usePathname } from '../hooks';
+import { paths } from '../paths';
 
 // ----------------------------------------------------------------------
 
-const IndexPage = lazy(() => import('src/pages/dashboard/one'));
-const PageTwo = lazy(() => import('src/pages/dashboard/two'));
-const PageThree = lazy(() => import('src/pages/dashboard/three'));
-const PageFour = lazy(() => import('src/pages/dashboard/four'));
-const PageFive = lazy(() => import('src/pages/dashboard/five'));
-const PageSix = lazy(() => import('src/pages/dashboard/six'));
+const AssinarPage = lazy(() => import('src/pages/assinar'));
+const SegurancaPage = lazy(() => import('src/pages/conta/seguranca'));
+const SessoesPage = lazy(() => import('src/pages/conta/sessoes'));
+const PasskeysPage = lazy(() => import('src/pages/conta/passkeys'));
 
-// ----------------------------------------------------------------------
-
-function SuspenseOutlet() {
-  const pathname = usePathname();
-  return (
-    <Suspense key={pathname} fallback={<LoadingScreen />}>
-      <Outlet />
-    </Suspense>
-  );
-}
-
+/**
+ * NOTE: ainda sem AuthGuard. As rotas ficam abertas até a issue de sessão
+ * (REQ-20) entregar o provider de autenticação; depois, envolver com <AuthGuard>.
+ */
 const dashboardLayout = () => (
   <DashboardLayout>
-    <SuspenseOutlet />
+    <Suspense fallback={<LoadingScreen />}>
+      <Outlet />
+    </Suspense>
   </DashboardLayout>
 );
 
 export const dashboardRoutes: RouteObject[] = [
   {
-    path: 'dashboard',
-    element: CONFIG.auth.skip ? dashboardLayout() : <AuthGuard>{dashboardLayout()}</AuthGuard>,
+    element: dashboardLayout(),
     children: [
-      { element: <IndexPage />, index: true },
-      { path: 'two', element: <PageTwo /> },
-      { path: 'three', element: <PageThree /> },
+      { path: paths.assinar, element: <AssinarPage /> },
       {
-        path: 'group',
+        path: paths.conta.root,
         children: [
-          { element: <PageFour />, index: true },
-          { path: 'five', element: <PageFive /> },
-          { path: 'six', element: <PageSix /> },
+          { index: true, element: <Navigate to={paths.conta.seguranca} replace /> },
+          { path: 'seguranca', element: <SegurancaPage /> },
+          { path: 'sessoes', element: <SessoesPage /> },
+          { path: 'passkeys', element: <PasskeysPage /> },
         ],
       },
     ],

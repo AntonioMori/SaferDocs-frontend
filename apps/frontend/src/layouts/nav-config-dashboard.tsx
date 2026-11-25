@@ -2,81 +2,46 @@ import type { NavSectionProps } from 'src/components/nav-section';
 
 import { paths } from 'src/routes/paths';
 
-import { CONFIG } from 'src/global-config';
-
-import { Label } from 'src/components/label';
-import { SvgColor } from 'src/components/svg-color';
+import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
-const icon = (name: string) => (
-  <SvgColor src={`${CONFIG.assetsDir}/assets/icons/navbar/${name}.svg`} />
-);
-
-const ICONS = {
-  job: icon('ic-job'),
-  blog: icon('ic-blog'),
-  chat: icon('ic-chat'),
-  mail: icon('ic-mail'),
-  user: icon('ic-user'),
-  file: icon('ic-file'),
-  lock: icon('ic-lock'),
-  tour: icon('ic-tour'),
-  order: icon('ic-order'),
-  label: icon('ic-label'),
-  blank: icon('ic-blank'),
-  kanban: icon('ic-kanban'),
-  folder: icon('ic-folder'),
-  course: icon('ic-course'),
-  params: icon('ic-params'),
-  banking: icon('ic-banking'),
-  booking: icon('ic-booking'),
-  invoice: icon('ic-invoice'),
-  product: icon('ic-product'),
-  calendar: icon('ic-calendar'),
-  disabled: icon('ic-disabled'),
-  external: icon('ic-external'),
-  subpaths: icon('ic-subpaths'),
-  menuItem: icon('ic-menu-item'),
-  ecommerce: icon('ic-ecommerce'),
-  analytics: icon('ic-analytics'),
-  dashboard: icon('ic-dashboard'),
-};
-
-// ----------------------------------------------------------------------
-
+/**
+ * Menu lateral da área logada. Cada item aponta para uma página da fundação (RNF-03).
+ */
 export const navData: NavSectionProps['data'] = [
-  /**
-   * Overview
-   */
   {
-    subheader: 'Overview',
+    subheader: 'Documentos',
     items: [
       {
-        title: 'One',
-        path: paths.dashboard.root,
-        icon: ICONS.dashboard,
-        info: <Label>v{CONFIG.appVersion}</Label>,
+        title: 'Assinar',
+        path: paths.assinar,
+        icon: <Iconify width={24} icon="solar:file-bold-duotone" />,
       },
-      { title: 'Two', path: paths.dashboard.two, icon: ICONS.ecommerce },
-      { title: 'Three', path: paths.dashboard.three, icon: ICONS.analytics },
+      {
+        title: 'Verificar',
+        path: paths.verificar,
+        icon: <Iconify width={24} icon="solar:file-check-bold-duotone" />,
+      },
     ],
   },
-  /**
-   * Management
-   */
   {
-    subheader: 'Management',
+    subheader: 'Conta',
     items: [
       {
-        title: 'Group',
-        path: paths.dashboard.group.root,
-        icon: ICONS.user,
-        children: [
-          { title: 'Four', path: paths.dashboard.group.root },
-          { title: 'Five', path: paths.dashboard.group.five },
-          { title: 'Six', path: paths.dashboard.group.six },
-        ],
+        title: 'Segurança',
+        path: paths.conta.seguranca,
+        icon: <Iconify width={24} icon="solar:shield-keyhole-bold-duotone" />,
+      },
+      {
+        title: 'Sessões',
+        path: paths.conta.sessoes,
+        icon: <Iconify width={24} icon="solar:monitor-bold" />,
+      },
+      {
+        title: 'Passkeys',
+        path: paths.conta.passkeys,
+        icon: <Iconify width={24} icon="solar:user-id-bold" />,
       },
     ],
   },
