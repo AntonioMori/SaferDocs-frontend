@@ -4,9 +4,12 @@ import { lazy, Suspense } from 'react';
 import { Outlet, Navigate } from 'react-router';
 
 import { SimpleLayout } from 'src/layouts/simple';
+import { DashboardLayout } from 'src/layouts/dashboard';
 import { AuthCenteredLayout } from 'src/layouts/auth-centered';
 
-import { SplashScreen } from 'src/components/loading-screen';
+import { SplashScreen, LoadingScreen } from 'src/components/loading-screen';
+
+import { useAuthContext } from 'src/auth/hooks';
 
 import { paths } from '../paths';
 import { dashboardRoutes } from './dashboard';
@@ -27,6 +30,28 @@ const authCentered = (page: React.ReactNode): React.ReactNode => (
   </Suspense>
 );
 
+function VerificarLayout({ children }: { children: React.ReactNode }) {
+  const { authenticated, loading } = useAuthContext();
+
+  if (loading) {
+    return <SplashScreen />;
+  }
+
+  if (authenticated) {
+    return (
+      <DashboardLayout>
+        <Suspense fallback={<LoadingScreen />}>{children}</Suspense>
+      </DashboardLayout>
+    );
+  }
+
+  return (
+    <Suspense fallback={<SplashScreen />}>
+      <SimpleLayout>{children}</SimpleLayout>
+    </Suspense>
+  );
+}
+
 export const routesSection: RouteObject[] = [
   { path: '/', element: <Navigate to={paths.entrar} replace /> },
 
@@ -35,15 +60,14 @@ export const routesSection: RouteObject[] = [
   { path: paths.cadastro, element: authCentered(<CadastroPage />) },
   { path: paths.doisFatores, element: authCentered(<DoisFatoresPage />) },
 
-  // Verificação pública de PDF assinado: sem login
+  // Verificação pública de PDF assinado: sem login. Quem está logado vê a mesma
+  // página dentro do painel, com a barra lateral para voltar a assinar.
   {
     path: paths.verificar,
     element: (
-      <Suspense fallback={<SplashScreen />}>
-        <SimpleLayout>
-          <VerificarPage />
-        </SimpleLayout>
-      </Suspense>
+      <VerificarLayout>
+        <VerificarPage />
+      </VerificarLayout>
     ),
   },
 
