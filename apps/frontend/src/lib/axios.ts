@@ -6,25 +6,37 @@ import { CONFIG } from 'src/global-config';
 
 // ----------------------------------------------------------------------
 
+/**
+ * Cliente HTTP único do front (RNF-01).
+ *
+ * Toda chamada à API passa por aqui: nenhum outro arquivo deve usar `fetch`,
+ * `XMLHttpRequest` ou criar outra instância do axios. A `baseURL` vem do env
+ * (`/api/v1`) e, em dev, o proxy do Vite repassa `/api` para o backend, então
+ * o navegador fala sempre com a mesma origem e o cookie do refresh funciona.
+ */
 const axiosInstance = axios.create({
-  baseURL: CONFIG.serverUrl,
+  baseURL: CONFIG.apiBaseUrl,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-/**
- * Optional: Add token (if using auth)
- *
- axiosInstance.interceptors.request.use((config) => {
-  const token = localStorage.getItem('accessToken');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+// ----------------------------------------------------------------------
+
+/** Gera o id que o backend devolve no erro e nos logs (`^[A-Za-z0-9._-]{1,64}$`). */
+export function createRequestId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
   }
+
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+}
+
+axiosInstance.interceptors.request.use((config) => {
+  config.headers.set('X-Request-ID', createRequestId());
   return config;
 });
-*
-*/
 
 axiosInstance.interceptors.response.use(
   (response) => response,
@@ -42,43 +54,20 @@ export default axiosInstance;
 export const fetcher = async <T = unknown>(
   args: string | [string, AxiosRequestConfig]
 ): Promise<T> => {
-  try {
-    const [url, config] = Array.isArray(args) ? args : [args, {}];
+  const [url, config] = Array.isArray(args) ? args : [args, {}];
 
-    const res = await axiosInstance.get<T>(url, config);
+  const res = await axiosInstance.get<T>(url, config);
 
-    return res.data;
-  } catch (error) {
-    console.error('Fetcher failed:', error);
-    throw error;
-  }
+  return res.data;
 };
 
 // ----------------------------------------------------------------------
 
+/** Caminhos relativos à `baseURL` (`/api/v1`). */
 export const endpoints = {
-  chat: '/api/chat',
-  kanban: '/api/kanban',
-  calendar: '/api/calendar',
   auth: {
-    me: '/api/auth/me',
-    signIn: '/api/auth/sign-in',
-    signUp: '/api/auth/sign-up',
-  },
-  mail: {
-    list: '/api/mail/list',
-    details: '/api/mail/details',
-    labels: '/api/mail/labels',
-  },
-  post: {
-    list: '/api/post/list',
-    details: '/api/post/details',
-    latest: '/api/post/latest',
-    search: '/api/post/search',
-  },
-  product: {
-    list: '/api/product/list',
-    details: '/api/product/details',
-    search: '/api/product/search',
+    me: '/auth/me',
+    signIn: '/auth/login',
+    signUp: '/auth/register',
   },
 } as const;
