@@ -72,4 +72,9 @@ export const endpoints = {
     signIn: '/auth/login',
     signUp: '/auth/register',
   },
+  documents: {
+    sign: '/documents/sign',
+    signatures: '/documents/signatures',
+  },
+  verify: '/verify',
 } as const;

@@ -44,6 +44,9 @@ export class ApiError extends Error {
 
   readonly timestamp?: string;
 
+  /** Segundos de espera do header `Retry-After` (429), quando o servidor informa. */
+  readonly retryAfter?: number;
+
   readonly fields: ApiFieldError[];
 
   constructor(init: {
@@ -52,6 +55,7 @@ export class ApiError extends Error {
     status: number;
     requestId?: string;
     timestamp?: string;
+    retryAfter?: number;
     fields?: ApiFieldError[];
     cause?: unknown;
   }) {
@@ -62,6 +66,7 @@ export class ApiError extends Error {
     this.status = init.status;
     this.requestId = init.requestId;
     this.timestamp = init.timestamp;
+    this.retryAfter = init.retryAfter;
     this.fields = init.fields ?? [];
   }
 }
@@ -83,6 +88,13 @@ function parseFields(value: unknown): ApiFieldError[] {
       ? [{ field: item.field, reason: item.reason }]
       : []
   );
+}
+
+/** `Retry-After` em segundos (a API só usa essa forma); data HTTP ou lixo viram `undefined`. */
+function parseRetryAfter(value: unknown): number | undefined {
+  const seconds = typeof value === 'string' && /^\d+$/.test(value.trim()) ? Number(value) : NaN;
+
+  return Number.isFinite(seconds) ? seconds : undefined;
 }
 
 function parseBody(data: unknown): ApiErrorBody | null {
@@ -117,6 +129,7 @@ export function toApiError(error: unknown): ApiError {
         status,
         requestId: body.request_id ?? error.response?.headers?.['x-request-id'],
         timestamp: body.timestamp,
+        retryAfter: parseRetryAfter(error.response?.headers?.['retry-after']),
         fields: body.fields,
         cause: error,
       });
@@ -127,6 +140,7 @@ export function toApiError(error: unknown): ApiError {
       message: error.response ? FALLBACK_MESSAGE : NETWORK_MESSAGE,
       status,
       requestId: error.response?.headers?.['x-request-id'],
+      retryAfter: parseRetryAfter(error.response?.headers?.['retry-after']),
       cause: error,
     });
   }
@@ -137,4 +151,26 @@ export function toApiError(error: unknown): ApiError {
     status: 0,
     cause: error,
   });
+}
+
+// ----------------------------------------------------------------------
+
+/**
+ * Com `responseType: 'blob'` o corpo do erro também chega como Blob, e o interceptor não
+ * consegue ler o JSON. Esta função lê o Blob e reconverte o erro, mantendo `code`, `fields`
+ * e `requestId`. Use no `catch` de toda chamada que baixa arquivo.
+ */
+export async function readBlobApiError(error: unknown): Promise<ApiError> {
+  const apiError = toApiError(error);
+  const cause = apiError.cause;
+
+  if (!isAxiosError(cause) || !(cause.response?.data instanceof Blob)) return apiError;
+
+  try {
+    cause.response.data = JSON.parse(await cause.response.data.text());
+  } catch {
+    return apiError;
+  }
+
+  return toApiError(cause);
 }
