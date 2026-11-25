@@ -14,6 +14,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 
+import { optionalPasskeyNameSchema } from 'src/lib/schemas';
 import { isPasskeySupported, isPasskeyClientError } from 'src/lib/webauthn';
 
 import { toast } from 'src/components/snackbar';
@@ -24,12 +25,7 @@ import { registerPasskey } from '../api/passkeys';
 
 // ----------------------------------------------------------------------
 
-const RegisterPasskeySchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .max(60, 'O nome da passkey deve ter no máximo 60 caracteres.'),
-});
+const RegisterPasskeySchema = z.object({ name: optionalPasskeyNameSchema });
 
 type RegisterPasskeyFormValues = z.infer<typeof RegisterPasskeySchema>;
 

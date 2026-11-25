@@ -1,7 +1,8 @@
 import type { SealPosition } from './seal';
 
 import axios, { endpoints } from 'src/lib/axios';
-import { readBlobApiError } from 'src/lib/api-error';
+import { sealPositionSchema } from 'src/lib/schemas';
+import { ApiError, readBlobApiError } from 'src/lib/api-error';
 
 // ----------------------------------------------------------------------
 
@@ -17,11 +18,21 @@ export type SignedDocument = {
  * Em caso de erro lança `ApiError` (DOC_001 a DOC_005, VAL_001, RATE_001...).
  */
 export async function signDocument(file: File, position: SealPosition): Promise<SignedDocument> {
+  const parsed = sealPositionSchema.safeParse(position);
+
+  if (!parsed.success) {
+    throw new ApiError({
+      code: 'VAL_001',
+      message: parsed.error.issues[0]?.message ?? 'Posição do selo inválida.',
+      status: 0,
+    });
+  }
+
   const body = new FormData();
   body.append('file', file);
-  body.append('page', String(position.page));
-  body.append('x', String(position.x));
-  body.append('y', String(position.y));
+  body.append('page', String(parsed.data.page));
+  body.append('x', String(parsed.data.x));
+  body.append('y', String(parsed.data.y));
 
   try {
     const response = await axios.post<Blob>(endpoints.documents.sign, body, {
