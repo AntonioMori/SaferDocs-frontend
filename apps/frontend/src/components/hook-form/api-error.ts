@@ -1,5 +1,7 @@
 import type { FieldValues, UseFormReturn } from 'react-hook-form';
 
+import { get } from 'react-hook-form';
+
 import { toApiError } from 'src/lib/api-error';
 
 import { toast } from 'src/components/snackbar';
@@ -21,38 +23,54 @@ export function showApiError(error: unknown) {
   toast.error(message, requestId ? { description: `ID da requisição: ${requestId}` } : undefined);
 }
 
+/** O campo existe no formulário? Sem valor (nem `''`) nos valores atuais, ninguém exibiria o erro. */
+function isRegistered<TFieldValues extends FieldValues>(
+  methods: Pick<UseFormReturn<TFieldValues>, 'getValues'>,
+  name: string
+) {
+  return get(methods.getValues(), name) !== undefined;
+}
+
 /**
  * Aplica o `fields` do erro da API nos campos do react-hook-form (RNF-14).
- * Retorna quantos campos receberam erro.
+ * Retorna quantos campos receberam erro; os que não existem no formulário ficam de fora.
  */
 export function setApiFieldErrors<TFieldValues extends FieldValues>(
-  methods: Pick<UseFormReturn<TFieldValues>, 'setError'>,
+  methods: Pick<UseFormReturn<TFieldValues>, 'setError' | 'getValues'>,
   error: unknown,
   { mapField }: ApplyOptions = {}
 ): number {
   const { fields } = toApiError(error);
+  let applied = 0;
 
   fields.forEach(({ field, reason }) => {
-    const name = (mapField ? mapField(field) : field) as Parameters<typeof methods.setError>[0];
+    const mapped = mapField ? mapField(field) : field;
 
-    methods.setError(name, { type: 'server', message: reason });
+    if (!isRegistered(methods, mapped)) return;
+
+    methods.setError(mapped as Parameters<typeof methods.setError>[0], {
+      type: 'server',
+      message: reason,
+    });
+    applied += 1;
   });
 
-  return fields.length;
+  return applied;
 }
 
 /**
  * Uso típico no `catch` do submit: erro de validação vai para o campo certo e
- * qualquer outro erro vira toast. Sem `fields`, mostra a mensagem no toast também.
+ * qualquer outro erro vira toast. Se algum erro de campo não encontrou campo no formulário
+ * (ou não veio `fields`), a mensagem também vai para o toast em vez de ser engolida.
  */
 export function handleApiFormError<TFieldValues extends FieldValues>(
-  methods: Pick<UseFormReturn<TFieldValues>, 'setError'>,
+  methods: Pick<UseFormReturn<TFieldValues>, 'setError' | 'getValues'>,
   error: unknown,
   options?: ApplyOptions
 ) {
   const applied = setApiFieldErrors(methods, error, options);
 
-  if (applied === 0) {
+  if (applied < toApiError(error).fields.length || applied === 0) {
     showApiError(error);
   }
 }
