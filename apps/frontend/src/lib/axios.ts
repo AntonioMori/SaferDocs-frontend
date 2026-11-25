@@ -185,6 +185,10 @@ export const endpoints = {
       loginVerify: '/auth/passkeys/login/verify',
     },
   },
+  security: {
+    events: '/security/events',
+    seen: '/security/events/seen',
+  },
   sessions: {
     list: '/sessions',
     item: (id: string) => `/sessions/${encodeURIComponent(id)}`,

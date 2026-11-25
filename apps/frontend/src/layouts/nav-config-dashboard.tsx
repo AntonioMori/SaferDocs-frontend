@@ -43,6 +43,11 @@ export const navData: NavSectionProps['data'] = [
         path: paths.conta.passkeys,
         icon: <Iconify width={24} icon="solar:user-id-bold" />,
       },
+      {
+        title: 'Atividade',
+        path: paths.conta.atividade,
+        icon: <Iconify width={24} icon="solar:bell-bing-bold-duotone" />,
+      },
     ],
   },
 ];

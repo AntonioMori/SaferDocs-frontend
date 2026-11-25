@@ -24,6 +24,7 @@ const LINKS = [
   { label: 'Segurança da conta', href: paths.conta.seguranca, icon: 'solar:shield-keyhole-bold-duotone' },
   { label: 'Sessões ativas', href: paths.conta.sessoes, icon: 'solar:monitor-bold' },
   { label: 'Passkeys', href: paths.conta.passkeys, icon: 'solar:user-id-bold' },
+  { label: 'Atividade de segurança', href: paths.conta.atividade, icon: 'solar:bell-bing-bold-duotone' },
 ] as const;
 
 /** Iniciais do nome para o avatar (até duas letras). */

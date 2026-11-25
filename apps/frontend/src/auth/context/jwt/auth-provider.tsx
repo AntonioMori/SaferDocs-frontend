@@ -18,24 +18,36 @@ type Props = {
  * o provider tenta recuperar a sessão pelo cookie do refresh, e é isso que mantém o login no F5.
  */
 export function AuthProvider({ children }: Props) {
-  const [state, setState] = useState<AuthState>({ user: null, loading: true });
+  const [state, setState] = useState<AuthState>({
+    user: null,
+    loading: true,
+    unseenSecurityEvents: 0,
+  });
 
   const checkUserSession = useCallback(async () => {
     try {
       const data = await refreshSession();
 
-      setState({ user: data.user, loading: false });
+      setState({
+        user: data.user,
+        loading: false,
+        unseenSecurityEvents: data.unseen_security_events ?? 0,
+      });
     } catch {
       // Sem cookie ou refresh inválido: só não há sessão. Sem log do erro, pois um ApiError
       // carrega a requisição original na `cause`.
-      setState({ user: null, loading: false });
+      setState({ user: null, loading: false, unseenSecurityEvents: 0 });
     }
   }, [setState]);
 
   const signIn = useCallback(
     (data: TokenResponse) => {
       setSession(data);
-      setState({ user: data.user, loading: false });
+      setState({
+        user: data.user,
+        loading: false,
+        unseenSecurityEvents: data.unseen_security_events ?? 0,
+      });
     },
     [setState]
   );
@@ -49,8 +61,12 @@ export function AuthProvider({ children }: Props) {
       // Sai da memória o token e o usuário. As telas logadas desmontam e o AuthGuard leva ao login,
       // inclusive se o usuário voltar no histórico.
       setSession(null);
-      setState({ user: null, loading: false });
+      setState({ user: null, loading: false, unseenSecurityEvents: 0 });
     }
+  }, []);
+
+  const clearUnseenSecurityEvents = useCallback(() => {
+    setState((prev) => ({ ...prev, unseenSecurityEvents: 0 }));
   }, []);
 
   const updateUser = useCallback(
@@ -78,11 +94,22 @@ export function AuthProvider({ children }: Props) {
       signIn,
       signOut,
       updateUser,
+      unseenSecurityEvents: state.unseenSecurityEvents,
+      clearUnseenSecurityEvents,
       loading: status === 'loading',
       authenticated: status === 'authenticated',
       unauthenticated: status === 'unauthenticated',
     }),
-    [checkUserSession, signIn, signOut, updateUser, state.user, status]
+    [
+      checkUserSession,
+      signIn,
+      signOut,
+      updateUser,
+      clearUnseenSecurityEvents,
+      state.user,
+      state.unseenSecurityEvents,
+      status,
+    ]
   );
 
   return <AuthContext value={memoizedValue}>{children}</AuthContext>;
