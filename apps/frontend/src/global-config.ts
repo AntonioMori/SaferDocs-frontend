@@ -18,8 +18,16 @@ export type ConfigValue = {
 
 // ----------------------------------------------------------------------
 
-/** Falha na inicialização, com mensagem clara, se uma variável obrigatória faltar ou for inválida. */
-const env = parseEnv(import.meta.env);
+/**
+ * Falha na inicialização, com mensagem clara, se uma variável obrigatória faltar ou for inválida.
+ *
+ * Passa só as chaves usadas pelo front. Entregar `import.meta.env` inteiro faria o Vite embutir
+ * todas as variáveis `VITE_*` no bundle, inclusive `VITE_SERVER_URL`, que só o `vite.config.ts` lê.
+ */
+const env = parseEnv({
+  VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
+  VITE_ASSETS_DIR: import.meta.env.VITE_ASSETS_DIR,
+});
 
 export const CONFIG: ConfigValue = {
   appName: 'SaferDocs',
