@@ -13,8 +13,11 @@ import axios, { endpoints } from 'src/lib/axios';
 
 import { showApiError } from 'src/components/hook-form/api-error';
 
+import { PasskeyLoginButton } from 'src/sections/auth/passkey-login-button';
+
 import { useAuthContext } from '../hooks';
 import { setSession } from '../context/jwt';
+import { FormDivider } from '../components/form-divider';
 
 // ----------------------------------------------------------------------
 
@@ -32,6 +35,7 @@ export function LoginView() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [passkeyLoading, setPasskeyLoading] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -83,9 +87,19 @@ export function LoginView() {
         required
       />
 
-      <Button type="submit" variant="contained" size="large" loading={submitting}>
+      <Button
+        type="submit"
+        variant="contained"
+        size="large"
+        loading={submitting}
+        disabled={passkeyLoading}
+      >
         Entrar
       </Button>
+
+      <FormDivider label="OU" sx={{ my: 0 }} />
+
+      <PasskeyLoginButton disabled={submitting} onLoadingChange={setPasskeyLoading} />
     </Stack>
   );
 }
