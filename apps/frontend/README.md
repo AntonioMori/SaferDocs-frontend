@@ -43,6 +43,8 @@ O modelo com todas as variáveis é o `.env.example`. Tudo que muda entre ambien
 
 Variáveis `VITE_*` ficam visíveis no navegador: nunca ponha segredo nelas.
 
+O env é validado com zod (`src/env-schema.ts`) ao subir: `yarn dev` e `yarn build` falham com a lista das variáveis ausentes ou inválidas, e o app também recusa iniciar no navegador (`src/global-config.ts`). `VITE_API_BASE_URL` é obrigatória; em dev, `VITE_SERVER_URL` também.
+
 ## Rotas
 
 | Rota                | Página             | Acesso      |
