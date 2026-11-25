@@ -30,6 +30,18 @@ globalmente, use `npx --yes yarn@1.22.22 <comando>`.
 
 O gerenciador de pacotes oficial é o **Yarn** (`packageManager: yarn@1.22.22`, `yarn.lock`).
 
+## Configuração (`.env`)
+
+Tudo que muda entre ambientes vem de variáveis `VITE_*` no `.env` (nenhuma URL fica no código):
+
+| Variável            | Para quê                                                            |
+| :------------------ | :------------------------------------------------------------------ |
+| `VITE_API_BASE_URL` | Prefixo da API, relativo à origem do front (`/api/v1`)              |
+| `VITE_SERVER_URL`   | Backend que recebe o proxy `/api` do Vite em dev (não vai ao bundle) |
+| `VITE_ASSETS_DIR`   | Pasta base dos assets estáticos (vazio = raiz)                      |
+
+Variáveis `VITE_*` ficam visíveis no navegador: nunca ponha segredo nelas.
+
 ## Rotas
 
 | Rota                | Página             | Acesso      |
