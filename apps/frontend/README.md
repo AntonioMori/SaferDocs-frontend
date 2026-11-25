@@ -136,6 +136,17 @@ Em **Conta → Segurança**, o cartão "Verificação em duas etapas":
 - O estado vem do `totp_enabled` do usuário (`/auth/refresh`, login) e é atualizado em memória
   com `updateUser`.
 
+### Códigos de recuperação (REQ-14)
+
+- Aparecem **uma vez**, ao ativar o 2FA ou ao gerar novos. O diálogo tem **Copiar**, **Baixar
+  .txt** e a confirmação "Guardei os códigos em lugar seguro". Sem ela, não fecha, nem pelo Esc
+  nem clicando fora.
+- Ficam só no estado do diálogo: nunca vão para storage, e o servidor guarda só o HMAC.
+- No login, em `/2fa`, "Perdi o celular: usar um código de recuperação" troca o campo. O código é
+  aceito em minúsculas e sem hífens e vale uma vez.
+- "Gerar novos códigos de recuperação" (Conta → Segurança) pede um código do app e invalida
+  todos os anteriores.
+
 ### Logout (REQ-21)
 
 O menu da conta no cabeçalho (`src/layouts/components/account-menu.tsx`) tem o botão **Sair**,

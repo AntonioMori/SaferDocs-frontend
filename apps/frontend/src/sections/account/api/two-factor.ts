@@ -32,3 +32,13 @@ export async function enableTotp(code: string): Promise<RecoveryCodes> {
 export async function disableTotp(password: string, code: string): Promise<void> {
   await axios.post(endpoints.auth.twoFactor.disable, { password, code });
 }
+
+/**
+ * `POST /auth/2fa/recovery-codes`: gera 10 códigos novos e invalida todos os anteriores.
+ * Exige um código do app, para quem só tem a sessão aberta não conseguir trocá-los.
+ */
+export async function regenerateRecoveryCodes(code: string): Promise<RecoveryCodes> {
+  const { data } = await axios.post<RecoveryCodes>(endpoints.auth.twoFactor.recoveryCodes, { code });
+
+  return data;
+}

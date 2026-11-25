@@ -11,14 +11,17 @@ export async function signInWithPassword(email: string, password: string): Promi
   return data;
 }
 
+/** O segundo fator: código do app (REQ-15) ou um código de recuperação (REQ-14). */
+export type SecondFactor = { code: string } | { recovery_code: string };
+
 /**
- * Segundo passo do login (REQ-15): `mfa_token` + código de 6 dígitos do app autenticador.
- * Só aqui saem o access token e o cookie do refresh.
+ * Segundo passo do login: `mfa_token` + código de 6 dígitos do app autenticador, ou um código de
+ * recuperação de uso único. Só aqui saem o access token e o cookie do refresh.
  */
-export async function signInWithTotp(mfaToken: string, code: string): Promise<TokenResponse> {
+export async function signInWithTotp(mfaToken: string, factor: SecondFactor): Promise<TokenResponse> {
   const { data } = await axios.post<TokenResponse>(endpoints.auth.signInTotp, {
     mfa_token: mfaToken,
-    code,
+    ...factor,
   });
 
   return data;

@@ -17,6 +17,7 @@ import { useAuthContext } from 'src/auth/hooks';
 import { RecoveryCodesDialog } from './recovery-codes-dialog';
 import { EnableTwoFactorDialog } from './enable-two-factor-dialog';
 import { DisableTwoFactorDialog } from './disable-two-factor-dialog';
+import { RegenerateRecoveryCodesDialog } from './regenerate-recovery-codes-dialog';
 
 // ----------------------------------------------------------------------
 
@@ -27,12 +28,19 @@ export function TwoFactorCard() {
 
   const enableDialog = useBoolean();
   const disableDialog = useBoolean();
+  const regenerateDialog = useBoolean();
   const [recoveryCodes, setRecoveryCodes] = useState<string[] | null>(null);
 
   const handleEnabled = (codes: string[]) => {
     enableDialog.onFalse();
     updateUser({ totp_enabled: true });
     toast.success('Verificação em duas etapas ativada.');
+    setRecoveryCodes(codes);
+  };
+
+  const handleRegenerated = (codes: string[]) => {
+    regenerateDialog.onFalse();
+    toast.success('Novos códigos gerados. Os anteriores não valem mais.');
     setRecoveryCodes(codes);
   };
 
@@ -64,9 +72,19 @@ export function TwoFactorCard() {
         </Typography>
 
         {enabled ? (
-          <Button variant="outlined" color="error" onClick={disableDialog.onTrue}>
-            Desativar
-          </Button>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+            <Button
+              variant="outlined"
+              color="inherit"
+              onClick={regenerateDialog.onTrue}
+              startIcon={<Iconify icon="solar:restart-bold" />}
+            >
+              Gerar novos códigos de recuperação
+            </Button>
+            <Button variant="outlined" color="error" onClick={disableDialog.onTrue}>
+              Desativar
+            </Button>
+          </Stack>
         ) : (
           <Button
             variant="contained"
@@ -84,6 +102,12 @@ export function TwoFactorCard() {
         open={disableDialog.value}
         onClose={disableDialog.onFalse}
         onDisabled={handleDisabled}
+      />
+
+      <RegenerateRecoveryCodesDialog
+        open={regenerateDialog.value}
+        onClose={regenerateDialog.onFalse}
+        onRegenerated={handleRegenerated}
       />
 
       <RecoveryCodesDialog codes={recoveryCodes} onClose={() => setRecoveryCodes(null)} />
