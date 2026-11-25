@@ -168,6 +168,7 @@ export const endpoints = {
     signInTotp: '/auth/login/totp',
     refresh: '/auth/refresh',
     signOut: '/auth/logout',
+    password: '/auth/password',
     signUp: '/auth/register',
     passkeys: {
       list: '/auth/passkeys',
