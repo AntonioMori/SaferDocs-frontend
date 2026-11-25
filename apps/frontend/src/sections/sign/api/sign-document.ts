@@ -1,6 +1,6 @@
 import type { SealPosition } from './seal';
 
-import axios, { endpoints } from 'src/lib/axios';
+import axios, { endpoints, UPLOAD_TIMEOUT_MS } from 'src/lib/axios';
 import { sealPositionSchema } from 'src/lib/schemas';
 import { ApiError, readBlobApiError } from 'src/lib/api-error';
 
@@ -37,6 +37,7 @@ export async function signDocument(file: File, position: SealPosition): Promise<
   try {
     const response = await axios.post<Blob>(endpoints.documents.sign, body, {
       responseType: 'blob',
+      timeout: UPLOAD_TIMEOUT_MS,
       headers: { 'Content-Type': 'multipart/form-data' },
     });
 
