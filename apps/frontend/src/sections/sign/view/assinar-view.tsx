@@ -1,3 +1,4 @@
+import type { SealPosition } from '../api/seal';
 import type { ApiError } from 'src/lib/api-error';
 import type { SignedDocument } from '../api/sign-document';
 
@@ -20,6 +21,7 @@ import { ApiErrorAlert } from 'src/components/api-error-alert';
 
 import { signDocument } from '../api/sign-document';
 import { DEFAULT_SEAL_POSITION } from '../api/seal';
+import { SealPositionPicker } from '../components/seal-position-picker';
 
 // ----------------------------------------------------------------------
 
@@ -29,10 +31,12 @@ export function AssinarView() {
   const [error, setError] = useState<ApiError | null>(null);
   const [signed, setSigned] = useState<SignedDocument | null>(null);
 
-  const position = DEFAULT_SEAL_POSITION;
+  const [position, setPosition] = useState<SealPosition>(DEFAULT_SEAL_POSITION);
+  const [sealFits, setSealFits] = useState(true);
 
   const handleFileChange = (next: File | null) => {
     setFile(next);
+    setPosition(DEFAULT_SEAL_POSITION);
     setError(null);
     setSigned(null);
   };
@@ -74,9 +78,16 @@ export function AssinarView() {
           <PdfUpload value={file} onChange={handleFileChange} disabled={signing} />
 
           {file && (
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              O selo será colocado na página {position.page}, no canto inferior esquerdo.
-            </Typography>
+            <SealPositionPicker
+              file={file}
+              value={position}
+              onChange={(next) => {
+                setPosition(next);
+                setSigned(null);
+              }}
+              onFitChange={setSealFits}
+              disabled={signing}
+            />
           )}
 
           {error && <ApiErrorAlert error={error} title="Não foi possível assinar" />}
@@ -103,7 +114,7 @@ export function AssinarView() {
             <Button
               variant="contained"
               size="large"
-              disabled={!file || !!signed}
+              disabled={!file || !sealFits || !!signed}
               loading={signing}
               onClick={handleSign}
               startIcon={<Iconify icon="solar:shield-check-bold" />}
