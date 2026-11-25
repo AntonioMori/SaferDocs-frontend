@@ -20,7 +20,7 @@ export type ConfigValue = {
 export const CONFIG: ConfigValue = {
   appName: 'SaferDocs',
   appVersion: packageJson.version,
-  apiBaseUrl: import.meta.env.VITE_API_BASE_URL ?? '/api/v1',
+  apiBaseUrl: import.meta.env.VITE_API_BASE_URL ?? '',
   assetsDir: import.meta.env.VITE_ASSETS_DIR ?? '',
   auth: {
     skip: false,
