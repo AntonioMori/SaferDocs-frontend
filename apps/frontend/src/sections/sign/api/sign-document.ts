@@ -1,8 +1,8 @@
 import type { SealPosition } from './seal';
 
-import axios, { endpoints, UPLOAD_TIMEOUT_MS } from 'src/lib/axios';
 import { sealPositionSchema } from 'src/lib/schemas';
 import { ApiError, readBlobApiError } from 'src/lib/api-error';
+import axios, { endpoints, UPLOAD_TIMEOUT_MS } from 'src/lib/axios';
 
 // ----------------------------------------------------------------------
 

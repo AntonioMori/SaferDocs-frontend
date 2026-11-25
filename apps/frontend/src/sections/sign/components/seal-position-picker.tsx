@@ -47,6 +47,11 @@ type Props = {
   onChange: (position: SealPosition) => void;
   /** Avisa se o selo cabe na página aberta (página menor que 240 x 80 pt não cabe). */
   onFitChange?: (fits: boolean) => void;
+  /**
+   * Avisa se a geometria da página atual já está pronta. Enquanto for `false` (página nova
+   * ainda sendo desenhada), a posição do selo não corresponde à página e não deve ser enviada.
+   */
+  onReadyChange?: (ready: boolean) => void;
   disabled?: boolean;
 };
 
@@ -55,10 +60,17 @@ type Props = {
  * selo; com o foco nele, as setas movem 1 pt (Shift, 10 pt). A página aparece girada quando
  * tem `/Rotate`, mas a posição sai sempre no espaço sem rotação, como o backend espera.
  */
-export function SealPositionPicker({ file, value, onChange, onFitChange, disabled }: Props) {
+export function SealPositionPicker({
+  file,
+  value,
+  onChange,
+  onFitChange,
+  onReadyChange,
+  disabled,
+}: Props) {
   const [doc, setDoc] = useState<PDFDocumentProxy | null>(null);
   const [loadError, setLoadError] = useState(false);
-  const [geometry, setGeometry] = useState<PageGeometry | null>(null);
+  const [rendered, setRendered] = useState<(PageGeometry & { page: number }) | null>(null);
   const [width, setWidth] = useState(0);
   const [announcement, setAnnouncement] = useState('');
 
@@ -66,6 +78,9 @@ export function SealPositionPicker({ file, value, onChange, onFitChange, disable
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sealRef = useRef<HTMLDivElement>(null);
   const dragOffset = useRef<{ x: number; y: number } | null>(null);
+  /** Término da renderização anterior: a nova só começa depois que o canvas foi liberado. */
+  const previousRender = useRef<Promise<unknown>>(Promise.resolve());
+  const lastAnnounced = useRef<string | null>(null);
 
   // Abre o PDF só em memória; troca de arquivo ou desmontagem fecham o documento.
   useEffect(() => {
@@ -73,7 +88,7 @@ export function SealPositionPicker({ file, value, onChange, onFitChange, disable
     let opened: PDFDocumentProxy | null = null;
 
     setDoc(null);
-    setGeometry(null);
+    setRendered(null);
     setLoadError(false);
 
     file
@@ -111,6 +126,9 @@ export function SealPositionPicker({ file, value, onChange, onFitChange, disable
   const pageCount = doc?.numPages ?? 0;
   const pageNumber = Math.min(Math.max(value.page, 1), Math.max(pageCount, 1));
 
+  // A geometria só vale para a página em que foi calculada; ao trocar de página ela some.
+  const geometry = rendered && rendered.page === pageNumber ? rendered : null;
+
   // Desenha a página escolhida e guarda a geometria para converter tela <-> pontos PDF.
   useEffect(() => {
     if (!doc || width <= 0) return undefined;
@@ -118,22 +136,31 @@ export function SealPositionPicker({ file, value, onChange, onFitChange, disable
     let cancelled = false;
     let renderTask: ReturnType<PDFPageProxy['render']> | null = null;
 
+    // Página ou tamanho novo: a geometria antiga não vale mais.
+    setRendered(null);
+
     (async () => {
+      // O pdf.js não aceita dois render() no mesmo canvas: espera o cancelamento do anterior.
+      await previousRender.current;
+      if (cancelled) return;
+
       const page = await doc.getPage(pageNumber);
       if (cancelled) return;
 
+      // Largura inteira: o canvas e o selo (calculado a partir do viewport) usam a mesma medida,
+      // sem a diferença de fração de pixel que desalinhava o selo.
       const base = page.getViewport({ scale: 1 });
-      const scale = Math.min(width, MAX_PREVIEW_WIDTH) / base.width;
+      const scale = Math.floor(Math.min(width, MAX_PREVIEW_WIDTH)) / base.width;
       const viewport = page.getViewport({ scale });
 
       const canvas = canvasRef.current;
       if (!canvas) return;
 
       const ratio = window.devicePixelRatio || 1;
-      canvas.width = Math.floor(viewport.width * ratio);
-      canvas.height = Math.floor(viewport.height * ratio);
-      canvas.style.width = `${Math.floor(viewport.width)}px`;
-      canvas.style.height = `${Math.floor(viewport.height)}px`;
+      canvas.width = Math.round(viewport.width * ratio);
+      canvas.height = Math.round(viewport.height * ratio);
+      canvas.style.width = `${viewport.width}px`;
+      canvas.style.height = `${viewport.height}px`;
 
       renderTask = page.render({
         canvas,
@@ -147,7 +174,7 @@ export function SealPositionPicker({ file, value, onChange, onFitChange, disable
         return; // renderização cancelada por uma troca de página ou de tamanho
       }
 
-      if (!cancelled) setGeometry({ view: page.view, viewport });
+      if (!cancelled) setRendered({ page: pageNumber, view: page.view, viewport });
     })().catch(() => {
       if (!cancelled) setLoadError(true);
     });
@@ -155,6 +182,11 @@ export function SealPositionPicker({ file, value, onChange, onFitChange, disable
     return () => {
       cancelled = true;
       renderTask?.cancel();
+
+      // O próximo render espera esta tarefa terminar de verdade (cancelar é assíncrono).
+      if (renderTask) {
+        previousRender.current = renderTask.promise.catch(() => undefined);
+      }
     };
   }, [doc, pageNumber, width]);
 
@@ -163,6 +195,13 @@ export function SealPositionPicker({ file, value, onChange, onFitChange, disable
   useEffect(() => {
     onFitChange?.(fits);
   }, [fits, onFitChange]);
+
+  // Sem pré-visualização (erro ao abrir) o envio segue permitido, com o selo no padrão.
+  const ready = loadError || !!geometry;
+
+  useEffect(() => {
+    onReadyChange?.(ready);
+  }, [ready, onReadyChange]);
 
   // Ao trocar de página (ou de tamanho), garante que o selo continue dentro dela.
   useEffect(() => {
@@ -246,13 +285,31 @@ export function SealPositionPicker({ file, value, onChange, onFitChange, disable
     );
 
     onChange(next);
-    setAnnouncement(`Posição x ${formatPt(next.x)} pt, y ${formatPt(next.y)} pt`);
   };
 
   const goToPage = (page: number) => onChange({ ...value, page });
 
   const rect = geometry ? sealViewportRect(geometry, { ...value, page: pageNumber }) : null;
   const positionLabel = `x ${formatPt(value.x)} pt, y ${formatPt(value.y)} pt`;
+
+  // Anuncia a posição a cada mudança (setas ou arraste), com pausa para não falar a cada pixel.
+  useEffect(() => {
+    if (!geometry) return undefined;
+
+    if (lastAnnounced.current === null) {
+      lastAnnounced.current = positionLabel;
+      return undefined;
+    }
+
+    if (lastAnnounced.current === positionLabel) return undefined;
+
+    const timer = setTimeout(() => {
+      lastAnnounced.current = positionLabel;
+      setAnnouncement(`Posição ${positionLabel}`);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [geometry, positionLabel]);
 
   if (loadError) {
     return (

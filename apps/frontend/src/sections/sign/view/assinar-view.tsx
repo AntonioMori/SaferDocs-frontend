@@ -33,6 +33,7 @@ export function AssinarView() {
 
   const [position, setPosition] = useState<SealPosition>(DEFAULT_SEAL_POSITION);
   const [sealFits, setSealFits] = useState(true);
+  const [sealReady, setSealReady] = useState(false);
 
   const handleFileChange = (next: File | null) => {
     setFile(next);
@@ -86,6 +87,7 @@ export function AssinarView() {
                 setSigned(null);
               }}
               onFitChange={setSealFits}
+              onReadyChange={setSealReady}
               disabled={signing}
             />
           )}
@@ -114,7 +116,7 @@ export function AssinarView() {
             <Button
               variant="contained"
               size="large"
-              disabled={!file || !sealFits || !!signed}
+              disabled={!file || !sealFits || !sealReady || !!signed}
               loading={signing}
               onClick={handleSign}
               startIcon={<Iconify icon="solar:shield-check-bold" />}
