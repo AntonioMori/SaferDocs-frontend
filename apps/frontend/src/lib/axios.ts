@@ -71,6 +71,14 @@ export const endpoints = {
     me: '/auth/me',
     signIn: '/auth/login',
     signUp: '/auth/register',
+    passkeys: {
+      list: '/auth/passkeys',
+      item: (id: string) => `/auth/passkeys/${id}`,
+      registerOptions: '/auth/passkeys/register/options',
+      registerVerify: '/auth/passkeys/register/verify',
+      loginOptions: '/auth/passkeys/login/options',
+      loginVerify: '/auth/passkeys/login/verify',
+    },
   },
   documents: {
     sign: '/documents/sign',
