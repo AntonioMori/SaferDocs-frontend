@@ -153,6 +153,20 @@ export const totpCodeSchema = z
   .transform((value) => value.replace(/\s+/g, ''))
   .pipe(z.string().regex(/^\d{6}$/, { error: 'Digite os 6 números que aparecem no app.' }));
 
+/**
+ * Código de recuperação do 2FA (REQ-14): 12 letras e números, aceito com ou sem hífens e em
+ * minúsculas; sai no formato `XXXX-XXXX-XXXX`.
+ */
+export const recoveryCodeSchema = z
+  .string({ error: 'Informe o código de recuperação.' })
+  .transform((value) => value.replace(/[\s-]+/g, '').toUpperCase())
+  .pipe(
+    z.string().regex(/^[A-Z0-9]{12}$/, {
+      error: 'O código de recuperação tem 12 letras e números (XXXX-XXXX-XXXX).',
+    })
+  )
+  .transform((value) => value.match(/.{4}/g)!.join('-'));
+
 // ----------------------------------------------------------------------
 
 /**
