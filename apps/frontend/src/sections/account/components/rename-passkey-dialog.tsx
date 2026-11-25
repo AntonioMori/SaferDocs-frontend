@@ -11,6 +11,8 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 
+import { passkeyNameSchema } from 'src/lib/schemas';
+
 import { toast } from 'src/components/snackbar';
 import { Form, Field } from 'src/components/hook-form';
 import { handleApiFormError } from 'src/components/hook-form/api-error';
@@ -19,13 +21,7 @@ import { renamePasskey } from '../api/passkeys';
 
 // ----------------------------------------------------------------------
 
-const RenamePasskeySchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, 'Informe um nome para a passkey.')
-    .max(60, 'O nome da passkey deve ter no máximo 60 caracteres.'),
-});
+const RenamePasskeySchema = z.object({ name: passkeyNameSchema });
 
 type RenamePasskeyValues = z.infer<typeof RenamePasskeySchema>;
 

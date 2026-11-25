@@ -38,6 +38,22 @@ const reactConfig = {
     'lines-around-directive': [2, { before: 'always', after: 'always' }],
     'arrow-body-style': [2, 'as-needed', { requireReturnForObjectLiteral: false }],
     // --- react ---
+    // --- XSS (REQ-64): nunca renderizar texto do servidor ou do usuário como HTML ---
+    'react/no-danger': 2,
+    'react/no-danger-with-children': 2,
+    'no-restricted-properties': [
+      2,
+      { property: 'innerHTML', message: 'Não escreva HTML na mão (REQ-64): renderize como texto.' },
+      { property: 'outerHTML', message: 'Não escreva HTML na mão (REQ-64): renderize como texto.' },
+      { property: 'insertAdjacentHTML', message: 'Não escreva HTML na mão (REQ-64).' },
+    ],
+    'no-restricted-syntax': [
+      2,
+      {
+        selector: "CallExpression[callee.object.name='document'][callee.property.name='write']",
+        message: 'document.write é proibido (REQ-64).',
+      },
+    ],
     'react/jsx-key': 0,
     'react/prop-types': 0,
     'react/display-name': 0,

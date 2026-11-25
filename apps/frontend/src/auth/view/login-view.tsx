@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography';
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 
+import { emailSchema } from 'src/lib/schemas';
 import axios, { endpoints } from 'src/lib/axios';
 
 import { showApiError } from 'src/components/hook-form/api-error';
@@ -36,15 +37,28 @@ export function LoginView() {
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [passkeyLoading, setPasskeyLoading] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setNotice(null);
+
+    // Valida antes de enviar (REQ-64). A senha só não pode ser vazia: a política é do cadastro.
+    const parsedEmail = emailSchema.safeParse(email);
+    setEmailError(parsedEmail.success ? null : parsedEmail.error.issues[0].message);
+    setPasswordError(password ? null : 'Informe a senha.');
+
+    if (!parsedEmail.success || !password) return;
+
     setSubmitting(true);
 
     try {
-      const { data } = await axios.post(endpoints.auth.signIn, { email, password });
+      const { data } = await axios.post(endpoints.auth.signIn, {
+        email: parsedEmail.data,
+        password,
+      });
 
       // O backend responde `access_token`. Conta com 2FA recebe `mfa_token`, e esse passo
       // ainda não existe nesta tela (REQ-04).
@@ -75,6 +89,8 @@ export function LoginView() {
         autoComplete="username"
         value={email}
         onChange={(event) => setEmail(event.target.value)}
+        error={!!emailError}
+        helperText={emailError}
         required
       />
 
@@ -84,6 +100,8 @@ export function LoginView() {
         autoComplete="current-password"
         value={password}
         onChange={(event) => setPassword(event.target.value)}
+        error={!!passwordError}
+        helperText={passwordError}
         required
       />
 
