@@ -33,6 +33,11 @@ export type AuthContextValue = {
   checkUserSession: () => Promise<void>;
   /** Abre a sessão com a resposta de um login (senha, TOTP ou passkey). */
   signIn: (data: TokenResponse) => void;
+  /**
+   * Logout (REQ-21): `POST /auth/logout` (o access vai para a denylist e o cookie do refresh é
+   * apagado) e limpeza do estado em memória. A sessão local termina mesmo se a API falhar.
+   */
+  signOut: () => Promise<void>;
   /** Atualiza os dados do usuário em memória (ex.: depois de ativar o 2FA). */
   updateUser: (patch: Partial<AuthUser>) => void;
 };

@@ -104,6 +104,17 @@ leva ao `returnTo` ou a `/assinar`.
   aviso "Sua sessão expirou" e a página vai para o login.
 - Login (senha, TOTP ou passkey) abre a sessão com `signIn(resposta)` do `useAuthContext()`.
 
+### Logout (REQ-21)
+
+O menu da conta no cabeçalho (`src/layouts/components/account-menu.tsx`) tem o botão **Sair**,
+que chama `signOut()`:
+
+1. `POST /auth/logout`: o backend põe o access na denylist e apaga e revoga o cookie do refresh;
+2. o token e o usuário saem da memória, mesmo se a API falhar;
+3. as telas logadas desmontam e o `AuthGuard` leva ao login. A navegação é do próprio SPA, sem
+   recarregar a página. Por isso, voltar no histórico cai de novo no `AuthGuard`, e não numa
+   cópia da página com dados guardada pelo navegador (bfcache).
+
 ### Renovação automática (REQ-29)
 
 Se uma requisição que levava o access token voltar **401**, o interceptor do axios:
