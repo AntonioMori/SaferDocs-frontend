@@ -147,6 +147,12 @@ export const optionalPasskeyNameSchema = z
   .transform((raw) => (raw.normalize('NFKC').trim() === '' ? '' : raw))
   .pipe(z.union([z.literal(''), passkeyNameSchema]));
 
+/** Código TOTP de 6 dígitos do app autenticador. Espaços são ignorados (`123 456`). */
+export const totpCodeSchema = z
+  .string({ error: 'Informe o código.' })
+  .transform((value) => value.replace(/\s+/g, ''))
+  .pipe(z.string().regex(/^\d{6}$/, { error: 'Digite os 6 números que aparecem no app.' }));
+
 // ----------------------------------------------------------------------
 
 /**

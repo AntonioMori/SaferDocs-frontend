@@ -3,6 +3,7 @@ import Typography from '@mui/material/Typography';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
+import { TwoFactorCard } from '../components/two-factor-card';
 import { ChangePasswordCard } from '../components/change-password-card';
 
 // ----------------------------------------------------------------------
@@ -19,6 +20,7 @@ export function SegurancaView() {
       </Typography>
 
       <Stack spacing={3}>
+        <TwoFactorCard />
         <ChangePasswordCard />
       </Stack>
     </DashboardContent>
