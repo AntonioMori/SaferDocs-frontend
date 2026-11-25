@@ -14,12 +14,14 @@ import { useRouter, useSearchParams } from 'src/routes/hooks';
 
 import { toApiError } from 'src/lib/api-error';
 import { PasswordIcon } from 'src/assets/icons';
+import { totpCodeSchema } from 'src/lib/schemas';
 
-import { Form, Field } from 'src/components/hook-form';
+import { Form } from 'src/components/hook-form';
 
 import { signInWithTotp } from '../api/auth';
 import { FormHead } from '../components/form-head';
 import { useCooldown, useAuthContext } from '../hooks';
+import { TotpCodeField } from '../components/totp-code-field';
 import { FormReturnLink } from '../components/form-return-link';
 import { getMfaChallenge, clearMfaChallenge } from '../context/jwt';
 
@@ -28,12 +30,7 @@ import { getMfaChallenge, clearMfaChallenge } from '../context/jwt';
 /** Mesmo limite do backend (`MFA_MAX_ATTEMPTS`): depois disso o desafio não vale mais. */
 const MAX_ATTEMPTS = 5;
 
-const CodeSchema = z.object({
-  code: z
-    .string()
-    .transform((value) => value.replace(/\s+/g, ''))
-    .pipe(z.string().regex(/^\d{6}$/, { error: 'Digite os 6 números que aparecem no app.' })),
-});
+const CodeSchema = z.object({ code: totpCodeSchema });
 
 type CodeInput = z.input<typeof CodeSchema>;
 type CodeOutput = z.output<typeof CodeSchema>;
@@ -155,21 +152,7 @@ export function DoisFatoresView() {
       ) : (
         <Form methods={methods} onSubmit={onSubmit}>
           <Box sx={{ gap: 3, display: 'flex', flexDirection: 'column' }}>
-            <Field.Text
-              name="code"
-              label="Código de verificação"
-              placeholder="000000"
-              autoFocus
-              autoComplete="one-time-code"
-              slotProps={{
-                inputLabel: { shrink: true },
-                htmlInput: {
-                  inputMode: 'numeric',
-                  maxLength: 7,
-                  style: { letterSpacing: 8, fontSize: 22, textAlign: 'center' },
-                },
-              }}
-            />
+            <TotpCodeField label="Código de verificação" autoFocus />
 
             <Button
               fullWidth

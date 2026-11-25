@@ -169,6 +169,12 @@ export const endpoints = {
     refresh: '/auth/refresh',
     signOut: '/auth/logout',
     password: '/auth/password',
+    twoFactor: {
+      setup: '/auth/2fa/setup',
+      enable: '/auth/2fa/enable',
+      disable: '/auth/2fa/disable',
+      recoveryCodes: '/auth/2fa/recovery-codes',
+    },
     signUp: '/auth/register',
     passkeys: {
       list: '/auth/passkeys',

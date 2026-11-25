@@ -123,6 +123,19 @@ enquanto a pessoa digita. Vale no cadastro e na troca de senha.
 4. Se o desafio vencer (5 min), passar de 5 tentativas ou a página recarregar, a pessoa volta ao
    login.
 
+### Ativar e desativar o 2FA (REQ-13)
+
+Em **Conta → Segurança**, o cartão "Verificação em duas etapas":
+
+- **Ativar:** `POST /auth/2fa/setup` gera o segredo pendente. O QR Code é desenhado **no
+  navegador** pelo `qrcode.react` a partir da URI `otpauth://`, como SVG (sem `innerHTML` e sem
+  serviço externo). "Não consigo ler o QR Code" mostra a chave para digitar no app. A ativação
+  só conclui com um código válido (`POST /auth/2fa/enable`), que devolve os códigos de
+  recuperação. Eles aparecem uma vez e ficam só no estado do diálogo.
+- **Desativar:** senha + código do app (`POST /auth/2fa/disable`).
+- O estado vem do `totp_enabled` do usuário (`/auth/refresh`, login) e é atualizado em memória
+  com `updateUser`.
+
 ### Logout (REQ-21)
 
 O menu da conta no cabeçalho (`src/layouts/components/account-menu.tsx`) tem o botão **Sair**,
