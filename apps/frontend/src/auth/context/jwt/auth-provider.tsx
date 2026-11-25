@@ -40,9 +40,9 @@ export function AuthProvider({ children }: Props) {
     [setState]
   );
 
-  const signOut = useCallback(async () => {
+  const signOut = useCallback(async (options?: { local?: boolean }) => {
     try {
-      await axios.post(endpoints.auth.signOut);
+      if (!options?.local) await axios.post(endpoints.auth.signOut);
     } catch {
       // A sessão local acaba de qualquer jeito. Sem log: o ApiError carrega a requisição na `cause`.
     } finally {

@@ -50,8 +50,10 @@ export type AuthContextValue = {
   /**
    * Logout (REQ-21): `POST /auth/logout` (o access vai para a denylist e o cookie do refresh é
    * apagado) e limpeza do estado em memória. A sessão local termina mesmo se a API falhar.
+   * Com `{ local: true }`, só limpa a memória: para quando a API já encerrou esta sessão
+   * (sessões ativas, REQ-57).
    */
-  signOut: () => Promise<void>;
+  signOut: (options?: { local?: boolean }) => Promise<void>;
   /** Atualiza os dados do usuário em memória (ex.: depois de ativar o 2FA). */
   updateUser: (patch: Partial<AuthUser>) => void;
 };
