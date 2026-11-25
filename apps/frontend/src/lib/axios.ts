@@ -4,6 +4,8 @@ import axios from 'axios';
 
 import { CONFIG } from 'src/global-config';
 
+import { toApiError } from './api-error';
+
 // ----------------------------------------------------------------------
 
 /**
@@ -38,13 +40,13 @@ axiosInstance.interceptors.request.use((config) => {
   return config;
 });
 
+/**
+ * Normaliza todo erro de resposta em `ApiError` (RNF-12). Quem chamar a API pode usar
+ * `isApiError(error)` e ler `code`, `message`, `fields` e `requestId`.
+ */
 axiosInstance.interceptors.response.use(
   (response) => response,
-  (error) => {
-    const message = error?.response?.data?.message || error?.message || 'Something went wrong!';
-    console.error('Axios error:', message);
-    return Promise.reject(new Error(message));
-  }
+  (error) => Promise.reject(toApiError(error))
 );
 
 export default axiosInstance;
