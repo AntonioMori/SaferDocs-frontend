@@ -1,4 +1,4 @@
-import type { LoginResponse, TokenResponse } from '../types';
+import type { AuthUser, LoginResponse, TokenResponse } from '../types';
 
 import axios, { endpoints } from 'src/lib/axios';
 
@@ -20,6 +20,15 @@ export async function signInWithTotp(mfaToken: string, code: string): Promise<To
     mfa_token: mfaToken,
     code,
   });
+
+  return data;
+}
+
+export type SignUpParams = { name: string; email: string; password: string };
+
+/** `POST /auth/register` (201). Devolve só o usuário: a sessão vem do login em seguida. */
+export async function signUp(params: SignUpParams): Promise<AuthUser> {
+  const { data } = await axios.post<AuthUser>(endpoints.auth.signUp, params);
 
   return data;
 }

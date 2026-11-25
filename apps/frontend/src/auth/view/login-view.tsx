@@ -40,7 +40,8 @@ const LoginSchema = z.object({
   password: z.string().min(1, { error: 'Informe a senha.' }),
 });
 
-type LoginSchemaType = z.input<typeof LoginSchema>;
+type LoginInput = z.input<typeof LoginSchema>;
+type LoginOutput = z.output<typeof LoginSchema>;
 
 // ----------------------------------------------------------------------
 
@@ -62,7 +63,7 @@ export function LoginView() {
   const [error, setError] = useState<ApiError | null>(null);
   const [passkeyLoading, setPasskeyLoading] = useState(false);
 
-  const methods = useForm<LoginSchemaType>({
+  const methods = useForm<LoginInput, unknown, LoginOutput>({
     resolver: zodResolver(LoginSchema),
     defaultValues: { email: '', password: '' },
   });

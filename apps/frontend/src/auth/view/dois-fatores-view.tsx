@@ -35,7 +35,8 @@ const CodeSchema = z.object({
     .pipe(z.string().regex(/^\d{6}$/, { error: 'Digite os 6 números que aparecem no app.' })),
 });
 
-type CodeSchemaType = z.input<typeof CodeSchema>;
+type CodeInput = z.input<typeof CodeSchema>;
+type CodeOutput = z.output<typeof CodeSchema>;
 
 // ----------------------------------------------------------------------
 
@@ -60,7 +61,7 @@ export function DoisFatoresView() {
     ? `${paths.entrar}?${new URLSearchParams({ returnTo }).toString()}`
     : paths.entrar;
 
-  const methods = useForm<CodeSchemaType>({
+  const methods = useForm<CodeInput, unknown, CodeOutput>({
     resolver: zodResolver(CodeSchema),
     defaultValues: { code: '' },
   });
@@ -94,7 +95,7 @@ export function DoisFatoresView() {
     setError(null);
 
     try {
-      const data = await signInWithTotp(challenge.token, values.code as string);
+      const data = await signInWithTotp(challenge.token, values.code);
 
       clearMfaChallenge();
       // O GuestGuard da rota leva ao `returnTo` (ou à tela de assinatura).

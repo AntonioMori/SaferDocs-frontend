@@ -123,8 +123,8 @@ export function plainText(options: TextOptions) {
 
 // ----------------------------------------------------------------------
 
-/** Nome de pessoa (até 120 caracteres). */
-export const nameSchema = plainText({ label: 'o nome', min: 1, max: 120 });
+/** Nome de pessoa: de 2 a 120 caracteres, como no cadastro do backend (`RegisterIn`). */
+export const nameSchema = plainText({ label: 'o nome', min: 2, max: 120 });
 
 /** E-mail: sem espaços nas pontas, minúsculo e com até 254 caracteres. */
 export const emailSchema = z
