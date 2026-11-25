@@ -1,7 +1,7 @@
 import type { ApiError } from 'src/lib/api-error';
 import type { VerifyResult } from '../api/verify-document';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
@@ -23,12 +23,25 @@ import { VerifyResultCard } from './verify-result-card';
 
 // ----------------------------------------------------------------------
 
+/** Espera padrão do 429 quando o servidor não informa o `Retry-After`. */
+const DEFAULT_COOLDOWN_S = 30;
+
 export function VerificarView() {
   const { authenticated } = useAuthContext();
   const [file, setFile] = useState<File | null>(null);
   const [verifying, setVerifying] = useState(false);
   const [result, setResult] = useState<VerifyResult | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
+  const [cooldown, setCooldown] = useState(0);
+
+  // Contagem regressiva do 429: o botão fica desabilitado até acabar.
+  useEffect(() => {
+    if (cooldown <= 0) return undefined;
+
+    const timer = setTimeout(() => setCooldown((seconds) => seconds - 1), 1000);
+
+    return () => clearTimeout(timer);
+  }, [cooldown]);
 
   const handleFileChange = (next: File | null) => {
     setFile(next);
@@ -46,7 +59,12 @@ export function VerificarView() {
     try {
       setResult(await verifyDocument(file));
     } catch (err) {
-      setError(toApiError(err));
+      const apiError = toApiError(err);
+      setError(apiError);
+
+      if (apiError.status === 429) {
+        setCooldown(apiError.retryAfter ?? DEFAULT_COOLDOWN_S);
+      }
     } finally {
       setVerifying(false);
     }
@@ -78,12 +96,12 @@ export function VerificarView() {
             <Button
               variant="contained"
               size="large"
-              disabled={!file}
+              disabled={!file || cooldown > 0}
               loading={verifying}
               onClick={handleVerify}
               startIcon={<Iconify icon="solar:shield-check-bold" />}
             >
-              Verificar documento
+              {cooldown > 0 ? `Tente de novo em ${cooldown} s` : 'Verificar documento'}
             </Button>
           </Stack>
         </Stack>
