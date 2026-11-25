@@ -80,3 +80,24 @@ export async function loginWithPasskey(): Promise<PasskeyLoginResult> {
 
   return data;
 }
+
+// ----------------------------------------------------------------------
+
+/** Lista as passkeys do próprio usuário (`GET /auth/passkeys`). */
+export async function listPasskeys(): Promise<PasskeyItem[]> {
+  const { data } = await axios.get<PasskeyItem[]>(endpoints.auth.passkeys.list);
+
+  return data;
+}
+
+/** Renomeia uma passkey (`PUT /auth/passkeys/{id}`). */
+export async function renamePasskey(id: string, name: string): Promise<PasskeyItem> {
+  const { data } = await axios.put<PasskeyItem>(endpoints.auth.passkeys.item(id), { name });
+
+  return data;
+}
+
+/** Revoga uma passkey (`DELETE /auth/passkeys/{id}`, 204). */
+export async function revokePasskey(id: string): Promise<void> {
+  await axios.delete(endpoints.auth.passkeys.item(id));
+}
