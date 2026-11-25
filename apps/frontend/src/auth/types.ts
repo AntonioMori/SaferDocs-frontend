@@ -19,6 +19,20 @@ export type TokenResponse = {
   unseen_security_events: number;
 };
 
+/** Senha certa numa conta com 2FA: ainda sem token, só o desafio do segundo passo (REQ-15). */
+export type MfaRequiredResponse = {
+  mfa_required: true;
+  /** Opaco, de uso único, vale só para `POST /auth/login/totp`. Fica só em memória. */
+  mfa_token: string;
+  /** Validade do desafio, em segundos. */
+  expires_in: number;
+};
+
+export type LoginResponse = TokenResponse | MfaRequiredResponse;
+
+export const isMfaRequired = (data: LoginResponse): data is MfaRequiredResponse =>
+  'mfa_required' in data && data.mfa_required === true;
+
 export type AuthState = {
   user: UserType;
   loading: boolean;

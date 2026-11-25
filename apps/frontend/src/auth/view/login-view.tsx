@@ -1,117 +1,180 @@
-import { useState } from 'react';
+import type { ApiError } from 'src/lib/api-error';
 
-import Stack from '@mui/material/Stack';
+import * as z from 'zod';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useBoolean } from 'minimal-shared/hooks';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+import Box from '@mui/material/Box';
+import Link from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
+
+import { paths } from 'src/routes/paths';
+import { RouterLink } from 'src/routes/components';
 
 import { emailSchema } from 'src/lib/schemas';
-import axios, { endpoints } from 'src/lib/axios';
+import { toApiError } from 'src/lib/api-error';
 
-import { showApiError } from 'src/components/hook-form/api-error';
+import { Iconify } from 'src/components/iconify';
+import { Form, Field } from 'src/components/hook-form';
 
 import { PasskeyLoginButton } from 'src/sections/auth/passkey-login-button';
 
-import { useAuthContext } from '../hooks';
+import { isMfaRequired } from '../types';
+import { signInWithPassword } from '../api/auth';
+import { FormHead } from '../components/form-head';
+import { useCooldown, useAuthContext } from '../hooks';
 import { FormDivider } from '../components/form-divider';
 
 // ----------------------------------------------------------------------
 
+/** A senha só não pode ser vazia: a política (REQ-01) vale no cadastro, não no login. */
+const LoginSchema = z.object({
+  email: emailSchema,
+  password: z.string().min(1, { error: 'Informe a senha.' }),
+});
+
+type LoginSchemaType = z.input<typeof LoginSchema>;
+
+// ----------------------------------------------------------------------
+
 /**
- * Login com e-mail e senha: `POST /auth/login`. A resposta abre a sessão pelo `signIn` do contexto
- * (access token só em memória, REQ-20).
+ * Login com e-mail e senha (REQ-04).
  *
- * Base do REQ-04. Ainda falta, a cargo de quem responde pelo REQ-04: o passo do segundo fator
- * (`mfa_token`) e os detalhes finais da tela (recuperação de senha, bloqueio, textos).
+ * A tela nunca diz se o e-mail existe: qualquer falha de credencial mostra a mensagem única da
+ * API (AUTH_001), também quando a conta está bloqueada por tentativas (REQ-03). No 429 (REQ-05),
+ * mostra o tempo de espera e segura o botão até acabar. A resposta abre a sessão pelo `signIn` do
+ * contexto, e o GuestGuard da rota leva ao `returnTo` (ou à tela de assinatura).
  */
 export function LoginView() {
   const { signIn } = useAuthContext();
+  const showPassword = useBoolean();
+  const cooldown = useCooldown();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [passkeyLoading, setPasskeyLoading] = useState(false);
-  const [emailError, setEmailError] = useState<string | null>(null);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [error, setError] = useState<ApiError | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [passkeyLoading, setPasskeyLoading] = useState(false);
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const methods = useForm<LoginSchemaType>({
+    resolver: zodResolver(LoginSchema),
+    defaultValues: { email: '', password: '' },
+  });
+
+  const {
+    handleSubmit,
+    resetField,
+    setFocus,
+    formState: { isSubmitting },
+  } = methods;
+
+  const onSubmit = handleSubmit(async (values) => {
+    setError(null);
     setNotice(null);
 
-    // Valida antes de enviar (REQ-64). A senha só não pode ser vazia: a política é do cadastro.
-    const parsedEmail = emailSchema.safeParse(email);
-    setEmailError(parsedEmail.success ? null : parsedEmail.error.issues[0].message);
-    setPasswordError(password ? null : 'Informe a senha.');
-
-    if (!parsedEmail.success || !password) return;
-
-    setSubmitting(true);
-
     try {
-      const { data } = await axios.post(endpoints.auth.signIn, {
-        email: parsedEmail.data,
-        password,
-      });
+      const data = await signInWithPassword(values.email, values.password);
 
-      // O backend responde `access_token`. Conta com 2FA recebe `mfa_token`, e esse passo
-      // ainda não existe nesta tela (REQ-04).
-      if (!data?.access_token) {
+      if (isMfaRequired(data)) {
         setNotice('Esta conta exige o segundo fator, que ainda não está disponível nesta tela.');
         return;
       }
 
-      // O GuestGuard da rota leva ao `returnTo` (ou à tela de assinatura).
       signIn(data);
-    } catch (error) {
-      showApiError(error);
-    } finally {
-      setSubmitting(false);
+    } catch (err) {
+      const apiError = toApiError(err);
+
+      setError(apiError);
+      if (apiError.status === 429) cooldown.start(apiError.retryAfter);
+
+      // A senha errada não fica no campo nem na memória do formulário.
+      resetField('password');
+      setFocus('password');
     }
-  };
+  });
+
+  const busy = isSubmitting || passkeyLoading;
 
   return (
-    <Stack component="form" spacing={3} onSubmit={handleSubmit} noValidate>
-      <Typography variant="h5">Entrar</Typography>
-
-      {notice && <Alert severity="info">{notice}</Alert>}
-
-      <TextField
-        label="E-mail"
-        type="email"
-        autoComplete="username"
-        value={email}
-        onChange={(event) => setEmail(event.target.value)}
-        error={!!emailError}
-        helperText={emailError}
-        required
+    <>
+      <FormHead
+        title="Entrar no SaferDocs"
+        description={
+          <>
+            {'Ainda não tem conta? '}
+            <Link component={RouterLink} href={paths.cadastro} variant="subtitle2">
+              Criar conta
+            </Link>
+          </>
+        }
       />
 
-      <TextField
-        label="Senha"
-        type="password"
-        autoComplete="current-password"
-        value={password}
-        onChange={(event) => setPassword(event.target.value)}
-        error={!!passwordError}
-        helperText={passwordError}
-        required
-      />
+      {notice && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          {notice}
+        </Alert>
+      )}
 
-      <Button
-        type="submit"
-        variant="contained"
-        size="large"
-        loading={submitting}
-        disabled={passkeyLoading}
-      >
-        Entrar
-      </Button>
+      {error && (
+        <Alert severity="error" role="alert" sx={{ mb: 3 }}>
+          {error.message}
+          {cooldown.active && ` Tente de novo em ${cooldown.seconds} s.`}
+        </Alert>
+      )}
 
-      <FormDivider label="OU" sx={{ my: 0 }} />
+      <Form methods={methods} onSubmit={onSubmit}>
+        <Box sx={{ gap: 3, display: 'flex', flexDirection: 'column' }}>
+          <Field.Text
+            name="email"
+            label="E-mail"
+            type="email"
+            autoComplete="username"
+            slotProps={{ inputLabel: { shrink: true } }}
+          />
 
-      <PasskeyLoginButton disabled={submitting} onLoadingChange={setPasskeyLoading} />
-    </Stack>
+          <Field.Text
+            name="password"
+            label="Senha"
+            type={showPassword.value ? 'text' : 'password'}
+            autoComplete="current-password"
+            slotProps={{
+              inputLabel: { shrink: true },
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={showPassword.onToggle}
+                      edge="end"
+                      aria-label={showPassword.value ? 'Ocultar senha' : 'Mostrar senha'}
+                    >
+                      <Iconify icon={showPassword.value ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
+
+          <Button
+            fullWidth
+            color="inherit"
+            size="large"
+            type="submit"
+            variant="contained"
+            loading={isSubmitting}
+            disabled={passkeyLoading || cooldown.active}
+          >
+            {cooldown.active ? `Tente de novo em ${cooldown.seconds} s` : 'Entrar'}
+          </Button>
+        </Box>
+      </Form>
+
+      <FormDivider label="OU" />
+
+      <PasskeyLoginButton disabled={busy} onLoadingChange={setPasskeyLoading} />
+    </>
   );
 }
