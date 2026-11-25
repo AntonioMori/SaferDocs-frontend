@@ -104,6 +104,14 @@ leva ao `returnTo` ou a `/assinar`.
   aviso "Sua sessão expirou" e a página vai para o login.
 - Login (senha, TOTP ou passkey) abre a sessão com `signIn(resposta)` do `useAuthContext()`.
 
+### Política de senhas (REQ-01)
+
+`src/lib/password-policy.ts` espelha a regra do backend: de 12 a 128 caracteres, com maiúscula,
+minúscula, número e símbolo. As classes usam categorias Unicode, como o Python.
+`newPasswordSchema` gera um erro por regra pendente, e o formulário não envia senha fraca. O
+componente `PasswordRules` (`src/components/password-rules`) mostra cada regra ficando verde
+enquanto a pessoa digita. Vale no cadastro e na troca de senha.
+
 ### Login com 2FA (REQ-15)
 
 1. `POST /auth/login` com a senha certa numa conta com 2FA devolve só
