@@ -7,7 +7,7 @@ import packageJson from '../package.json';
 export type ConfigValue = {
   appName: string;
   appVersion: string;
-  serverUrl: string;
+  apiBaseUrl: string;
   assetsDir: string;
   auth: {
     skip: boolean;
@@ -20,7 +20,7 @@ export type ConfigValue = {
 export const CONFIG: ConfigValue = {
   appName: 'SaferDocs',
   appVersion: packageJson.version,
-  serverUrl: import.meta.env.VITE_SERVER_URL ?? '',
+  apiBaseUrl: import.meta.env.VITE_API_BASE_URL ?? '/api/v1',
   assetsDir: import.meta.env.VITE_ASSETS_DIR ?? '',
   auth: {
     skip: false,
