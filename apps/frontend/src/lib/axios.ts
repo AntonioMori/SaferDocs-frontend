@@ -73,7 +73,7 @@ export const endpoints = {
     signUp: '/auth/register',
     passkeys: {
       list: '/auth/passkeys',
-      item: (id: string) => `/auth/passkeys/${id}`,
+      item: (id: string) => `/auth/passkeys/${encodeURIComponent(id)}`,
       registerOptions: '/auth/passkeys/register/options',
       registerVerify: '/auth/passkeys/register/verify',
       loginOptions: '/auth/passkeys/login/options',

@@ -9,6 +9,8 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 
+import { isApiError } from 'src/lib/api-error';
+
 import { toast } from 'src/components/snackbar';
 import { showApiError } from 'src/components/hook-form/api-error';
 
@@ -20,9 +22,11 @@ type Props = {
   passkey: PasskeyItem | null;
   onClose: () => void;
   onRevoked: (passkey: PasskeyItem) => void;
+  /** A passkey não existe mais no servidor (404). */
+  onGone?: (passkey: PasskeyItem) => void;
 };
 
-export function RevokePasskeyDialog({ passkey, onClose, onRevoked }: Props) {
+export function RevokePasskeyDialog({ passkey, onClose, onRevoked, onGone }: Props) {
   const [submitting, setSubmitting] = useState(false);
 
   const handleConfirm = async () => {
@@ -36,6 +40,13 @@ export function RevokePasskeyDialog({ passkey, onClose, onRevoked }: Props) {
       onRevoked(passkey);
       onClose();
     } catch (error) {
+      if (isApiError(error) && error.status === 404) {
+        toast.warning('Esta passkey já não existe. A lista foi atualizada.');
+        onGone?.(passkey);
+        onClose();
+        return;
+      }
+
       showApiError(error);
     } finally {
       setSubmitting(false);

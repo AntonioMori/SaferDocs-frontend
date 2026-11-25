@@ -11,6 +11,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 
+import { isApiError } from 'src/lib/api-error';
 import { passkeyNameSchema } from 'src/lib/schemas';
 
 import { toast } from 'src/components/snackbar';
@@ -29,9 +30,11 @@ type Props = {
   passkey: PasskeyItem | null;
   onClose: () => void;
   onRenamed: (passkey: PasskeyItem) => void;
+  /** A passkey não existe mais no servidor (404). */
+  onGone?: (passkey: PasskeyItem) => void;
 };
 
-export function RenamePasskeyDialog({ passkey, onClose, onRenamed }: Props) {
+export function RenamePasskeyDialog({ passkey, onClose, onRenamed, onGone }: Props) {
   const methods = useForm<RenamePasskeyValues>({
     resolver: zodResolver(RenamePasskeySchema),
     defaultValues: { name: '' },
@@ -56,6 +59,13 @@ export function RenamePasskeyDialog({ passkey, onClose, onRenamed }: Props) {
       onRenamed(updated);
       onClose();
     } catch (error) {
+      if (isApiError(error) && error.status === 404) {
+        toast.warning('Esta passkey não existe mais. A lista foi atualizada.');
+        onGone?.(passkey);
+        onClose();
+        return;
+      }
+
       handleApiFormError(methods, error);
     }
   });
