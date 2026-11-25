@@ -1,54 +1,30 @@
 // ----------------------------------------------------------------------
 
 const ROOTS = {
-  AUTH: '/auth',
-  DASHBOARD: '/dashboard',
+  CONTA: '/conta',
+  ERROR: '/error',
 };
 
 // ----------------------------------------------------------------------
 
 export const paths = {
-  faqs: '/faqs',
-  minimalStore: 'https://mui.com/store/items/minimal-dashboard/',
-  // AUTH
-  auth: {
-    amplify: {
-      signIn: `${ROOTS.AUTH}/amplify/sign-in`,
-      verify: `${ROOTS.AUTH}/amplify/verify`,
-      signUp: `${ROOTS.AUTH}/amplify/sign-up`,
-      updatePassword: `${ROOTS.AUTH}/amplify/update-password`,
-      resetPassword: `${ROOTS.AUTH}/amplify/reset-password`,
-    },
-    jwt: {
-      signIn: `${ROOTS.AUTH}/jwt/sign-in`,
-      signUp: `${ROOTS.AUTH}/jwt/sign-up`,
-    },
-    firebase: {
-      signIn: `${ROOTS.AUTH}/firebase/sign-in`,
-      verify: `${ROOTS.AUTH}/firebase/verify`,
-      signUp: `${ROOTS.AUTH}/firebase/sign-up`,
-      resetPassword: `${ROOTS.AUTH}/firebase/reset-password`,
-    },
-    auth0: {
-      signIn: `${ROOTS.AUTH}/auth0/sign-in`,
-    },
-    supabase: {
-      signIn: `${ROOTS.AUTH}/supabase/sign-in`,
-      verify: `${ROOTS.AUTH}/supabase/verify`,
-      signUp: `${ROOTS.AUTH}/supabase/sign-up`,
-      updatePassword: `${ROOTS.AUTH}/supabase/update-password`,
-      resetPassword: `${ROOTS.AUTH}/supabase/reset-password`,
-    },
+  root: '/',
+  // Autenticação
+  entrar: '/entrar',
+  cadastro: '/cadastro',
+  doisFatores: '/2fa',
+  // Documentos
+  assinar: '/assinar',
+  verificar: '/verificar', // pública
+  // Conta
+  conta: {
+    root: ROOTS.CONTA,
+    seguranca: `${ROOTS.CONTA}/seguranca`,
+    sessoes: `${ROOTS.CONTA}/sessoes`,
+    passkeys: `${ROOTS.CONTA}/passkeys`,
   },
-  // DASHBOARD
-  dashboard: {
-    root: ROOTS.DASHBOARD,
-    two: `${ROOTS.DASHBOARD}/two`,
-    three: `${ROOTS.DASHBOARD}/three`,
-    group: {
-      root: `${ROOTS.DASHBOARD}/group`,
-      five: `${ROOTS.DASHBOARD}/group/five`,
-      six: `${ROOTS.DASHBOARD}/group/six`,
-    },
-  },
+  // Erros
+  page403: `${ROOTS.ERROR}/403`,
+  page404: `${ROOTS.ERROR}/404`,
+  page500: `${ROOTS.ERROR}/500`,
 };
