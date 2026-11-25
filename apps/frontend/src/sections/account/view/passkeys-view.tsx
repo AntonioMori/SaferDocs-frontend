@@ -34,6 +34,9 @@ import { RegisterPasskeyDialog } from '../components/register-passkey-dialog';
 
 const NIL_AAGUID = '00000000-0000-0000-0000-000000000000';
 
+/** Data e hora em pt-BR, 24 horas (o padrão do template é em inglês, com am/pm). */
+const DATE_TIME_PT_BR = 'DD/MM/YYYY HH:mm';
+
 export function PasskeysView() {
   const supported = isPasskeySupported();
 
@@ -61,6 +64,15 @@ export function PasskeysView() {
   useEffect(() => {
     load();
   }, [load]);
+
+  /** A passkey já não existe no servidor (404): tira da tabela e recarrega a lista. */
+  const handleGone = useCallback(
+    (gone: PasskeyItem) => {
+      setItems((prev) => prev.filter((item) => item.id !== gone.id));
+      load();
+    },
+    [load]
+  );
 
   return (
     <DashboardContent maxWidth="lg">
@@ -131,9 +143,9 @@ export function PasskeysView() {
                       <TableCell sx={{ fontFamily: 'monospace', fontSize: 12 }}>
                         {item.aaguid === NIL_AAGUID ? 'Não informado' : item.aaguid}
                       </TableCell>
-                      <TableCell>{fDateTime(item.created_at)}</TableCell>
+                      <TableCell>{fDateTime(item.created_at, DATE_TIME_PT_BR)}</TableCell>
                       <TableCell>
-                        {item.last_used_at ? fDateTime(item.last_used_at) : 'Nunca usada'}
+                        {item.last_used_at ? fDateTime(item.last_used_at, DATE_TIME_PT_BR) : 'Nunca usada'}
                       </TableCell>
                       <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                         <Tooltip title="Renomear">
@@ -185,12 +197,14 @@ export function PasskeysView() {
         onRenamed={(updated) =>
           setItems((prev) => prev.map((item) => (item.id === updated.id ? updated : item)))
         }
+        onGone={handleGone}
       />
 
       <RevokePasskeyDialog
         passkey={revoking}
         onClose={() => setRevoking(null)}
         onRevoked={(removed) => setItems((prev) => prev.filter((item) => item.id !== removed.id))}
+        onGone={handleGone}
       />
     </DashboardContent>
   );

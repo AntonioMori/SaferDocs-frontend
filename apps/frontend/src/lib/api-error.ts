@@ -27,10 +27,13 @@ export const API_ERROR_CODES = {
   /** Resposta de erro fora do formato padronizado. Só existe no front. */
   unknown: 'UNKNOWN',
   validation: 'VAL_001',
+  /** Arquivo acima do limite (mesmo código do backend). */
+  tooLarge: 'DOC_002',
 } as const;
 
 const FALLBACK_MESSAGE = 'Não foi possível concluir a operação. Tente novamente.';
 const NETWORK_MESSAGE = 'Não foi possível conectar ao servidor. Verifique sua conexão.';
+const TOO_LARGE_MESSAGE = 'O arquivo é grande demais. Envie um PDF menor.';
 
 // ----------------------------------------------------------------------
 
@@ -131,6 +134,17 @@ export function toApiError(error: unknown): ApiError {
         timestamp: body.timestamp,
         retryAfter: parseRetryAfter(error.response?.headers?.['retry-after']),
         fields: body.fields,
+        cause: error,
+      });
+    }
+
+    // O 413 costuma vir do proxy (nginx), com corpo HTML ou vazio, antes de chegar à API.
+    if (status === 413) {
+      return new ApiError({
+        code: API_ERROR_CODES.tooLarge,
+        message: TOO_LARGE_MESSAGE,
+        status,
+        requestId: error.response?.headers?.['x-request-id'],
         cause: error,
       });
     }

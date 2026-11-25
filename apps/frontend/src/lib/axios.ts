@@ -16,8 +16,15 @@ import { toApiError } from './api-error';
  * (`/api/v1`) e, em dev, o proxy do Vite repassa `/api` para o backend, então
  * o navegador fala sempre com a mesma origem e o cookie do refresh funciona.
  */
+/** Limite das chamadas JSON. */
+export const REQUEST_TIMEOUT_MS = 30_000;
+
+/** Limite dos uploads de PDF (assinar e verificar), que levam mais tempo. */
+export const UPLOAD_TIMEOUT_MS = 120_000;
+
 const axiosInstance = axios.create({
   baseURL: CONFIG.apiBaseUrl,
+  timeout: REQUEST_TIMEOUT_MS,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -73,7 +80,7 @@ export const endpoints = {
     signUp: '/auth/register',
     passkeys: {
       list: '/auth/passkeys',
-      item: (id: string) => `/auth/passkeys/${id}`,
+      item: (id: string) => `/auth/passkeys/${encodeURIComponent(id)}`,
       registerOptions: '/auth/passkeys/register/options',
       registerVerify: '/auth/passkeys/register/verify',
       loginOptions: '/auth/passkeys/login/options',

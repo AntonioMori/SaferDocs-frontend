@@ -1,4 +1,4 @@
-import axios, { endpoints } from 'src/lib/axios';
+import axios, { endpoints, UPLOAD_TIMEOUT_MS } from 'src/lib/axios';
 
 // ----------------------------------------------------------------------
 
@@ -26,6 +26,7 @@ export async function verifyDocument(file: File): Promise<VerifyResult> {
   body.append('file', file);
 
   const { data } = await axios.post(endpoints.verify, body, {
+    timeout: UPLOAD_TIMEOUT_MS,
     headers: { 'Content-Type': 'multipart/form-data' },
   });
 

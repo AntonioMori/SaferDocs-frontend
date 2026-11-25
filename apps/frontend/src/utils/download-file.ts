@@ -21,9 +21,10 @@ export function downloadBlob(blob: Blob, filename: string) {
 export function signedFilename(originalName: string): string {
   const base = originalName
     .replace(/\.pdf$/i, '')
-    .replace(/[^\p{L}\p{N}._ -]/gu, '_')
-    .slice(0, 120)
-    .trim();
+    .replace(/[^\p{L}\p{N}._ -]/gu, '_');
 
-  return `${base || 'documento'}-assinado.pdf`;
+  // Corta por pontos de código: `.slice` partiria ao meio um par substituto (letra fora do BMP).
+  const truncated = Array.from(base).slice(0, 120).join('').trim();
+
+  return `${truncated || 'documento'}-assinado.pdf`;
 }

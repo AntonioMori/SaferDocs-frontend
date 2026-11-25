@@ -29,18 +29,17 @@ export function AuthProvider({ children }: Props) {
       const accessToken = sessionStorage.getItem(JWT_STORAGE_KEY);
 
       if (accessToken && isValidToken(accessToken)) {
-        setSession(accessToken);
+        await setSession(accessToken);
 
-        const res = await axios.get(endpoints.auth.me);
-
-        const { user } = res.data;
+        // `/auth/me` devolve o usuário direto, não `{ user }`.
+        const { data: user } = await axios.get(endpoints.auth.me);
 
         setState({ user: { ...user, accessToken }, loading: false });
       } else {
         setState({ user: null, loading: false });
       }
-    } catch (error) {
-      console.error(error);
+    } catch {
+      // Sem log do erro: um ApiError carrega a requisição original (senha, token) na `cause`.
       setState({ user: null, loading: false });
     }
   }, [setState]);
@@ -58,7 +57,7 @@ export function AuthProvider({ children }: Props) {
 
   const memoizedValue = useMemo(
     () => ({
-      user: state.user ? { ...state.user, role: state.user?.role ?? 'admin' } : null,
+      user: state.user,
       checkUserSession,
       loading: status === 'loading',
       authenticated: status === 'authenticated',
