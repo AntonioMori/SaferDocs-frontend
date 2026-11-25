@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { safeReturnUrl } from 'minimal-shared/utils';
 
-import { useSearchParams } from 'src/routes/hooks';
+import { useRouter, useSearchParams } from 'src/routes/hooks';
 
 import { CONFIG } from 'src/global-config';
 
@@ -16,6 +16,7 @@ type GuestGuardProps = {
 };
 
 export function GuestGuard({ children }: GuestGuardProps) {
+  const router = useRouter();
   const { loading, authenticated } = useAuthContext();
 
   const [isChecking, setIsChecking] = useState(true);
@@ -29,10 +30,9 @@ export function GuestGuard({ children }: GuestGuardProps) {
     }
 
     if (authenticated) {
-      // Redirect authenticated users to the returnTo path
-      // Using `window.location.href` instead of `router.replace` to avoid unnecessary re-rendering
-      // that might be caused by the AuthGuard component
-      window.location.href = redirectUrl;
+      // Navegação do próprio SPA: recarregar a página apagaria o access token da memória e
+      // gastaria um refresh só para recuperá-lo (REQ-20).
+      router.replace(redirectUrl);
       return;
     }
 

@@ -14,7 +14,6 @@ import { Iconify } from 'src/components/iconify';
 import { showApiError } from 'src/components/hook-form/api-error';
 
 import { useAuthContext } from 'src/auth/hooks';
-import { setSession } from 'src/auth/context/jwt';
 
 import { loginWithPasskey } from '../account/api/passkeys';
 
@@ -32,7 +31,7 @@ type PasskeyLoginButtonProps = {
 /**
  * Botão "Entrar com passkey". Executa a cerimônia completa
  * (`POST /auth/passkeys/login/options` -> `navigator.credentials.get` ->
- * `POST /auth/passkeys/login/verify`), guarda o token com `setSession` e navega.
+ * `POST /auth/passkeys/login/verify`), abre a sessão com o `signIn` do contexto e navega.
  *
  * É independente de qualquer tela de login: basta renderizá-lo dentro dela.
  */
@@ -42,7 +41,7 @@ export function PasskeyLoginButton({
   onLoadingChange,
 }: PasskeyLoginButtonProps) {
   const router = useRouter();
-  const { checkUserSession } = useAuthContext();
+  const { signIn } = useAuthContext();
 
   const passkeySupported = isPasskeySupported();
 
@@ -60,8 +59,7 @@ export function PasskeyLoginButton({
 
     try {
       const data = await loginWithPasskey();
-      await setSession(data.access_token);
-      await checkUserSession?.();
+      signIn(data);
       router.push(redirectTo);
     } catch (error) {
       if (isPasskeyClientError(error)) {

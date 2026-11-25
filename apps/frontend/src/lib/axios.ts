@@ -5,6 +5,7 @@ import axios from 'axios';
 import { CONFIG } from 'src/global-config';
 
 import { toApiError } from './api-error';
+import { getAccessToken } from './access-token';
 
 // ----------------------------------------------------------------------
 
@@ -25,7 +26,6 @@ export const UPLOAD_TIMEOUT_MS = 120_000;
 const axiosInstance = axios.create({
   baseURL: CONFIG.apiBaseUrl,
   timeout: REQUEST_TIMEOUT_MS,
-  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -42,8 +42,24 @@ export function createRequestId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
 }
 
+/** Rotas de autenticação: as únicas que precisam do cookie do refresh (`Path=/api/v1/auth`). */
+export function isAuthRoute(url: string | undefined): boolean {
+  return url === '/auth' || !!url?.startsWith('/auth/');
+}
+
 axiosInstance.interceptors.request.use((config) => {
   config.headers.set('X-Request-ID', createRequestId());
+
+  // O access token sai da memória a cada requisição (REQ-20), nunca de um header fixo
+  // deixado em `axios.defaults`. Quem já mandou o próprio Authorization é respeitado.
+  const token = getAccessToken();
+  if (token && !config.headers.has('Authorization')) {
+    config.headers.set('Authorization', `Bearer ${token}`);
+  }
+
+  // Credenciais (cookie) só nas rotas de autenticação (REQ-20).
+  config.withCredentials = isAuthRoute(config.url);
+
   return config;
 });
 
@@ -77,6 +93,7 @@ export const endpoints = {
   auth: {
     me: '/auth/me',
     signIn: '/auth/login',
+    refresh: '/auth/refresh',
     signUp: '/auth/register',
     passkeys: {
       list: '/auth/passkeys',

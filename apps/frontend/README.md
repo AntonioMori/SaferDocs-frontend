@@ -79,9 +79,30 @@ try {
 | `/error/404`        | Não encontrada     | Pública     |
 | `/error/500`        | Erro interno       | Pública     |
 
-As páginas são esqueletos (`PageStub`) com links para todas as outras. Cada issue de
-funcionalidade substitui o esqueleto pela tela real. Os guards (`src/auth/guard`) existem, mas
-ainda não envolvem as rotas: entram com o provider de sessão (REQ-20).
+As páginas ainda em esqueleto usam `PageStub`. Cada issue de funcionalidade troca o esqueleto
+pela tela real. As rotas "Logado" ficam atrás do `AuthGuard`: sem sessão, ele manda para
+`/entrar?returnTo=...`. As rotas "Visitante" ficam atrás do `GuestGuard`: com sessão ativa, ele
+leva ao `returnTo` ou a `/assinar`.
+
+## Sessão (REQ-20)
+
+| O quê | Onde fica |
+| :--- | :--- |
+| Access token (JWT curto) | Só em memória (`src/lib/access-token.ts`). Nunca em `localStorage`, `sessionStorage` ou cookie legível. |
+| Refresh token | Cookie `HttpOnly`, `SameSite=Strict`, `Path=/api/v1/auth`. O JS nunca o lê. |
+| Dados do usuário | Estado do `AuthProvider`. |
+
+- Ao abrir ou recarregar a página (F5), o `AuthProvider` chama `POST /auth/refresh` e recupera a
+  sessão pelo cookie. Sem cookie válido, o usuário fica deslogado.
+- O interceptor do axios põe o `Authorization: Bearer` da memória em cada requisição e só liga o
+  `withCredentials` nas rotas `/auth/*`.
+- `refreshSession()` é single-flight: chamadas simultâneas usam a mesma requisição. O backend
+  roda o refresh a cada uso e trata o reuso como roubo (REQ-30). Dois refresh em paralelo com o
+  mesmo cookie, como acontece quando o StrictMode monta o provider duas vezes, derrubariam a
+  sessão.
+- Um minuto antes do access vencer, a sessão é renovada em segundo plano. Se não der, aparece o
+  aviso "Sua sessão expirou" e a página vai para o login.
+- Login (senha, TOTP ou passkey) abre a sessão com `signIn(resposta)` do `useAuthContext()`.
 
 ## Arquitetura de pastas
 

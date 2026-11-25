@@ -9,6 +9,7 @@ import { AuthCenteredLayout } from 'src/layouts/auth-centered';
 
 import { SplashScreen, LoadingScreen } from 'src/components/loading-screen';
 
+import { GuestGuard } from 'src/auth/guard';
 import { useAuthContext } from 'src/auth/hooks';
 
 import { paths } from '../paths';
@@ -24,10 +25,13 @@ const Page403 = lazy(() => import('src/pages/error/403'));
 const Page404 = lazy(() => import('src/pages/error/404'));
 const Page500 = lazy(() => import('src/pages/error/500'));
 
+/** Telas de quem ainda não entrou: com sessão ativa, o GuestGuard leva ao `returnTo`. */
 const authCentered = (page: React.ReactNode): React.ReactNode => (
-  <Suspense fallback={<SplashScreen />}>
-    <AuthCenteredLayout>{page}</AuthCenteredLayout>
-  </Suspense>
+  <GuestGuard>
+    <Suspense fallback={<SplashScreen />}>
+      <AuthCenteredLayout>{page}</AuthCenteredLayout>
+    </Suspense>
+  </GuestGuard>
 );
 
 function VerificarLayout({ children }: { children: React.ReactNode }) {
