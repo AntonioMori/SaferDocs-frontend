@@ -33,16 +33,17 @@ export function SettingsDrawer({ sx, defaultSettings }: SettingsDrawerProps) {
   const settings = useSettingsContext();
   const { mode, setMode, colorScheme } = useColorScheme();
 
-  // Visible options by default settings
+  // Opções visíveis. Presets de cor, layout do menu, fonte e direção (RTL) ficam fixos nos
+  // valores padrão e não aparecem para a pessoa.
   const visibility = {
     mode: hasKeys(defaultSettings, ['mode']),
     contrast: hasKeys(defaultSettings, ['contrast']),
     navColor: hasKeys(defaultSettings, ['navColor']),
-    fontSize: hasKeys(defaultSettings, ['fontSize']),
-    direction: hasKeys(defaultSettings, ['direction']),
-    navLayout: hasKeys(defaultSettings, ['navLayout']),
-    fontFamily: hasKeys(defaultSettings, ['fontFamily']),
-    primaryColor: hasKeys(defaultSettings, ['primaryColor']),
+    fontSize: false,
+    direction: false,
+    navLayout: false,
+    fontFamily: false,
+    primaryColor: false,
     compactLayout: hasKeys(defaultSettings, ['compactLayout']),
   };
 
@@ -226,14 +227,14 @@ export function SettingsDrawer({ sx, defaultSettings }: SettingsDrawerProps) {
             }}
             options={[
               {
-                label: 'Integrate',
-                value: 'integrate',
-                icon: <SvgIcon>{settingIcons.sidebarOutline}</SvgIcon>,
-              },
-              {
-                label: 'Apparent',
+                label: 'Aparente',
                 value: 'apparent',
                 icon: <SvgIcon>{settingIcons.sidebarFill}</SvgIcon>,
+              },
+              {
+                label: 'Integrada',
+                value: 'integrate',
+                icon: <SvgIcon>{settingIcons.sidebarOutline}</SvgIcon>,
               },
             ]}
           />
