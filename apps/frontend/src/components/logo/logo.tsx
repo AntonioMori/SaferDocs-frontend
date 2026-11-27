@@ -15,11 +15,14 @@ import { logoClasses } from './classes';
 const BRAND_BLUE = '#078DEE';
 const BRAND_AMBER = '#F9AF1D';
 
-/** Monograma: quadrado azul, "S" branco e o ponto âmbar do lacre. Desenhado em 104 x 104. */
-function LogoMark() {
+/**
+ * Monograma: quadrado azul, "S" branco e o ponto âmbar do lacre. Desenhado em 104 x 104.
+ * Sem `tile`, fica só o "S" e o ponto, para fundos escuros como o painel do login.
+ */
+export function LogoMark({ tile = true }: { tile?: boolean }) {
   return (
     <>
-      <rect width="104" height="104" rx="26" fill={BRAND_BLUE} />
+      {tile && <rect width="104" height="104" rx="26" fill={BRAND_BLUE} />}
       <path
         d="M74 30C68 20 30 18 30 40C30 60 74 52 74 70C74 90 36 86 28 74"
         stroke="#FFFFFF"
@@ -40,6 +43,7 @@ export type LogoProps = LinkProps & {
 export function Logo({
   sx,
   disabled,
+  children,
   className,
   href = '/',
   isSingle = true,
@@ -88,7 +92,7 @@ export function Logo({
       ]}
       {...other}
     >
-      {isSingle ? singleLogo : fullLogo}
+      {children ?? (isSingle ? singleLogo : fullLogo)}
     </LogoRoot>
   );
 }

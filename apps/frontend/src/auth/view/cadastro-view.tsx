@@ -109,9 +109,11 @@ export function CadastroView() {
   return (
     <>
       <FormHead
-        title="Criar conta"
+        title="Crie sua conta"
         description={
           <>
+            Cadastre-se para assinar os seus documentos.
+            <br />
             {'Já tem conta? '}
             <Link component={RouterLink} href={paths.entrar} variant="subtitle2">
               Entrar

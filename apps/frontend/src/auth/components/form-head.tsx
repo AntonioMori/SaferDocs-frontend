@@ -11,11 +11,12 @@ type FormHeadProps = BoxProps & {
   description?: React.ReactNode;
 };
 
+/** Cabeçalho das telas de entrada: título grande alinhado à esquerda, como no painel. */
 export function FormHead({ sx, icon, title, description, ...other }: FormHeadProps) {
   return (
     <>
       {icon && (
-        <Box component="span" sx={{ mb: 3, mx: 'auto', display: 'inline-flex' }}>
+        <Box component="span" sx={{ mb: 3, display: 'inline-flex' }}>
           {icon}
         </Box>
       )}
@@ -23,10 +24,9 @@ export function FormHead({ sx, icon, title, description, ...other }: FormHeadPro
       <Box
         sx={[
           () => ({
-            mb: 5,
-            gap: 1.5,
+            mb: 3,
+            gap: 1,
             display: 'flex',
-            textAlign: 'center',
             whiteSpace: 'pre-line',
             flexDirection: 'column',
           }),
@@ -34,10 +34,24 @@ export function FormHead({ sx, icon, title, description, ...other }: FormHeadPro
         ]}
         {...other}
       >
-        <Typography variant="h5">{title}</Typography>
+        <Typography
+          component="h2"
+          sx={(theme) => ({
+            m: 0,
+            fontFamily: theme.typography.fontFamily,
+            fontWeight: 700,
+            fontSize: 34,
+            lineHeight: 1.2,
+          })}
+        >
+          {title}
+        </Typography>
 
         {description && (
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          <Typography
+            component="div"
+            sx={{ fontSize: 15, lineHeight: '24px', color: 'text.secondary' }}
+          >
             {description}
           </Typography>
         )}
