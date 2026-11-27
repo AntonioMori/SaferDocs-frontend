@@ -1,7 +1,9 @@
 {
   "compilerOptions": {
     /* Bundler */
-    "baseUrl": ".",
+    "paths": {
+      "src/*": ["./src/*"]
+    },
     "module": "esnext",
     "types": ["vite/client", "node"],
     "jsx": "react-jsx",
