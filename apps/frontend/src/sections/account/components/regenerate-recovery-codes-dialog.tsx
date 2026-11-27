@@ -77,7 +77,7 @@ export function RegenerateRecoveryCodesDialog({ open, onClose, onRegenerated }: 
           <Button variant="outlined" color="inherit" onClick={onClose} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <Button type="submit" variant="contained" loading={isSubmitting}>
+          <Button type="submit" color="primary" variant="contained" loading={isSubmitting}>
             Gerar novos códigos
           </Button>
         </DialogActions>

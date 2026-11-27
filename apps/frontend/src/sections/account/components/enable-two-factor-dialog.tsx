@@ -128,8 +128,8 @@ export function EnableTwoFactorDialog({ open, onClose, onEnabled }: Props) {
           {setup && (
             <Stack spacing={3}>
               <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                1. No celular, abra o Google Authenticator, Authy ou outro app autenticador e leia
-                o QR Code abaixo.
+                1. No celular, abra o Google Authenticator, Authy ou outro app autenticador e leia o
+                QR Code abaixo.
               </Typography>
 
               <Box
@@ -153,10 +153,19 @@ export function EnableTwoFactorDialog({ open, onClose, onEnabled }: Props) {
 
               <Box sx={{ textAlign: 'center' }}>
                 {showSecret ? (
-                  <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'center' }}>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{ alignItems: 'center', justifyContent: 'center' }}
+                  >
                     <Typography
                       data-testid="totp-secret"
-                      sx={{ fontFamily: 'monospace', fontSize: 15, letterSpacing: 1, wordBreak: 'break-all' }}
+                      sx={{
+                        fontFamily: 'monospace',
+                        fontSize: 15,
+                        letterSpacing: 1,
+                        wordBreak: 'break-all',
+                      }}
                     >
                       {groupSecret(setup.secret)}
                     </Typography>
@@ -186,7 +195,13 @@ export function EnableTwoFactorDialog({ open, onClose, onEnabled }: Props) {
           <Button variant="outlined" color="inherit" onClick={handleClose} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <Button type="submit" variant="contained" loading={isSubmitting} disabled={!setup}>
+          <Button
+            type="submit"
+            color="primary"
+            variant="contained"
+            loading={isSubmitting}
+            disabled={!setup}
+          >
             Ativar
           </Button>
         </DialogActions>

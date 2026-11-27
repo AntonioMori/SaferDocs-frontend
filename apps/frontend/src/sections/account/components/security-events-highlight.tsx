@@ -80,7 +80,7 @@ export function SecurityEventsHighlight() {
         <Button component={RouterLink} href={paths.conta.atividade} color="inherit" onClick={close}>
           Ver toda a atividade
         </Button>
-        <Button variant="contained" onClick={close}>
+        <Button color="primary" variant="contained" onClick={close}>
           Entendi
         </Button>
       </DialogActions>

@@ -46,11 +46,13 @@ const MuiTableCell: Components<Theme>['MuiTableCell'] = {
       fontSize: theme.typography.pxToRem(14),
       color: theme.vars.palette.text.secondary,
       fontWeight: theme.typography.fontWeightSemiBold,
-      backgroundColor: theme.vars.palette.background.neutral,
+      // Mais escuro que o `background.neutral` (#F4F6F8): com o contraste alto, esse é o fundo
+      // da página, e o cabeçalho sumiria na borda do card.
+      backgroundColor: varAlpha(theme.vars.palette.grey['500Channel'], 0.2),
     }),
     stickyHeader: ({ theme }) => ({
       backgroundColor: theme.vars.palette.background.paper,
-      backgroundImage: `linear-gradient(to bottom, ${theme.vars.palette.background.neutral}, ${theme.vars.palette.background.neutral})`,
+      backgroundImage: `linear-gradient(to bottom, ${varAlpha(theme.vars.palette.grey['500Channel'], 0.2)}, ${varAlpha(theme.vars.palette.grey['500Channel'], 0.2)})`,
     }),
     paddingCheckbox: ({ theme }) => ({
       paddingLeft: theme.spacing(1),

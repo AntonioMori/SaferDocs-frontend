@@ -150,7 +150,7 @@ export function ChangePasswordCard() {
           />
 
           <Box>
-            <Button type="submit" variant="contained" loading={isSubmitting}>
+            <Button type="submit" color="primary" variant="contained" loading={isSubmitting}>
               Trocar senha
             </Button>
           </Box>

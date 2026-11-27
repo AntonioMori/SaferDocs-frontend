@@ -35,11 +35,7 @@ type RegisterPasskeyDialogProps = {
   onSuccess?: (passkey: PasskeyItem) => void;
 };
 
-export function RegisterPasskeyDialog({
-  open,
-  onClose,
-  onSuccess,
-}: RegisterPasskeyDialogProps) {
+export function RegisterPasskeyDialog({ open, onClose, onSuccess }: RegisterPasskeyDialogProps) {
   const supported = isPasskeySupported();
   const [clientError, setClientError] = useState<string | null>(null);
 
@@ -122,6 +118,7 @@ export function RegisterPasskeyDialog({
 
           <Button
             type="submit"
+            color="primary"
             variant="contained"
             loading={isSubmitting}
             disabled={!supported}

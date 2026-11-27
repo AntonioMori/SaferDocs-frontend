@@ -41,13 +41,22 @@ const STATUS_VIEWS: Record<VerifyStatus, StatusView> = {
   },
 };
 
-/** Data em UTC, como no selo do documento. */
-export function formatUtc(iso: string): string {
+/**
+ * Data no horário de Brasília (ex.: "27/11/2026, 01:16:29 (horário de Brasília)"). O selo no PDF
+ * continua em UTC (REQ-47); aqui a pessoa vê a hora local, sem precisar converter.
+ */
+export function formatBrasilia(iso: string): string {
   const date = new Date(iso);
 
   if (Number.isNaN(date.getTime())) return iso;
 
-  return `${date.toLocaleString('pt-BR', { timeZone: 'UTC', dateStyle: 'short', timeStyle: 'medium' })} UTC`;
+  const local = date.toLocaleString('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
+    dateStyle: 'short',
+    timeStyle: 'medium',
+  });
+
+  return `${local} (horário de Brasília)`;
 }
 
 // ----------------------------------------------------------------------
@@ -60,7 +69,7 @@ export function VerifyResultCard({ result }: { result: VerifyResult }) {
       ? [
           ...(result.signerName ? [{ label: 'Assinado por', value: result.signerName }] : []),
           ...(result.signedAt
-            ? [{ label: 'Data da assinatura', value: formatUtc(result.signedAt) }]
+            ? [{ label: 'Data da assinatura', value: formatBrasilia(result.signedAt) }]
             : []),
           ...(result.signatureId ? [{ label: 'Id da assinatura', value: result.signatureId }] : []),
         ]

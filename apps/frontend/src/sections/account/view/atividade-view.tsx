@@ -51,7 +51,7 @@ export function AtividadeView() {
   }, [load]);
 
   return (
-    <DashboardContent maxWidth="md">
+    <DashboardContent maxWidth="lg">
       <Typography variant="h4" sx={{ mb: 1 }}>
         Atividade de segurança
       </Typography>

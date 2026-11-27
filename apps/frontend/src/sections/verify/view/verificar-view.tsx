@@ -75,7 +75,7 @@ export function VerificarView() {
   const Wrapper = authenticated ? DashboardContent : PublicContainer;
 
   return (
-    <Wrapper maxWidth="md">
+    <Wrapper maxWidth="lg">
       <Typography variant="h4" sx={{ mb: 1 }}>
         Verificar documento
       </Typography>
@@ -94,6 +94,7 @@ export function VerificarView() {
 
           <Stack direction="row" sx={{ justifyContent: 'flex-end' }}>
             <Button
+              color="primary"
               variant="contained"
               size="large"
               disabled={!file || cooldown > 0}
@@ -110,7 +111,7 @@ export function VerificarView() {
   );
 }
 
-function PublicContainer({ children, maxWidth }: { children: React.ReactNode; maxWidth: 'md' }) {
+function PublicContainer({ children, maxWidth }: { children: React.ReactNode; maxWidth: 'lg' }) {
   return (
     <Container maxWidth={maxWidth} sx={{ py: 5 }}>
       {children}
