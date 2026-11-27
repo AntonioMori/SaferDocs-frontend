@@ -11,6 +11,7 @@ import { Scrollbar } from 'src/components/scrollbar';
 import { NavSectionMini, NavSectionVertical } from 'src/components/nav-section';
 
 import { layoutClasses } from '../core';
+import { NavLogo } from '../components/nav-logo';
 import { NavToggleButton } from '../components/nav-toggle-button';
 
 // ----------------------------------------------------------------------
@@ -41,8 +42,8 @@ export function NavVertical({
   const renderNavVertical = () => (
     <>
       {slots?.topArea ?? (
-        <Box sx={{ pl: 3.5, pt: 2.5, pb: 1 }}>
-          <Logo />
+        <Box sx={{ pl: 3, pt: 2.5, pb: 1 }}>
+          <NavLogo />
         </Box>
       )}
 
@@ -122,7 +123,7 @@ const NavRoot = styled('div', {
     position: 'fixed',
     flexDirection: 'column',
     zIndex: 'var(--layout-nav-zIndex)',
-    backgroundColor: 'var(--layout-nav-bg)',
+    background: 'var(--layout-nav-bg)',
     width: isNavMini ? 'var(--layout-nav-mini-width)' : 'var(--layout-nav-vertical-width)',
     borderRight: `1px solid var(--layout-nav-border-color, ${varAlpha(theme.vars.palette.grey['500Channel'], 0.12)})`,
     transition: theme.transitions.create(['width'], {

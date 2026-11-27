@@ -10,10 +10,13 @@ import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 
+import { paths } from 'src/routes/paths';
+import { RouterLink } from 'src/routes/components';
+
 import { downloadBlob, signedFilename } from 'src/utils/download-file';
 
-import { toApiError } from 'src/lib/api-error';
 import { DashboardContent } from 'src/layouts/dashboard';
+import { toApiError, API_ERROR_CODES } from 'src/lib/api-error';
 
 import { Iconify } from 'src/components/iconify';
 import { PdfUpload } from 'src/components/pdf-upload';
@@ -65,7 +68,7 @@ export function AssinarView() {
   };
 
   return (
-    <DashboardContent maxWidth="md">
+    <DashboardContent maxWidth="lg">
       <Typography variant="h4" sx={{ mb: 1 }}>
         Assinar documento
       </Typography>
@@ -92,7 +95,21 @@ export function AssinarView() {
             />
           )}
 
-          {error && <ApiErrorAlert error={error} title="Não foi possível assinar" />}
+          {error?.code === API_ERROR_CODES.alreadySigned ? (
+            <Alert
+              severity="warning"
+              role="alert"
+              action={
+                <Button component={RouterLink} href={paths.verificar} color="inherit" size="small">
+                  Verificar documento
+                </Button>
+              }
+            >
+              Este PDF já foi assinado no SaferDocs. Para conferir a assinatura, use a verificação.
+            </Alert>
+          ) : (
+            error && <ApiErrorAlert error={error} title="Não foi possível assinar" />
+          )}
 
           {signed && (
             <Alert
@@ -114,6 +131,7 @@ export function AssinarView() {
 
           <Stack direction="row" sx={{ justifyContent: 'flex-end' }}>
             <Button
+              color="primary"
               variant="contained"
               size="large"
               disabled={!file || !sealFits || !sealReady || !!signed}

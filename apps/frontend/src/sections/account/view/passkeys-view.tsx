@@ -83,6 +83,7 @@ export function PasskeysView() {
         <Typography variant="h4">Passkeys</Typography>
 
         <Button
+          color="primary"
           variant="contained"
           startIcon={<Iconify icon="mingcute:add-line" />}
           disabled={!supported}
@@ -145,7 +146,9 @@ export function PasskeysView() {
                       </TableCell>
                       <TableCell>{fDateTime(item.created_at, DATE_TIME_PT_BR)}</TableCell>
                       <TableCell>
-                        {item.last_used_at ? fDateTime(item.last_used_at, DATE_TIME_PT_BR) : 'Nunca usada'}
+                        {item.last_used_at
+                          ? fDateTime(item.last_used_at, DATE_TIME_PT_BR)
+                          : 'Nunca usada'}
                       </TableCell>
                       <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                         <Tooltip title="Renomear">

@@ -15,7 +15,7 @@ export type SignedDocument = {
 
 /**
  * `POST /documents/sign` (REQ-46): envia o PDF com a posição do selo e recebe o PDF assinado.
- * Em caso de erro lança `ApiError` (DOC_001 a DOC_005, VAL_001, RATE_001...).
+ * Em caso de erro lança `ApiError` (DOC_001 a DOC_006, VAL_001, RATE_001...).
  */
 export async function signDocument(file: File, position: SealPosition): Promise<SignedDocument> {
   const parsed = sealPositionSchema.safeParse(position);

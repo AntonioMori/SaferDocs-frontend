@@ -78,8 +78,8 @@ export function RecoveryCodesDialog({ codes, onClose }: Props) {
 
       <DialogContent sx={{ pt: 1 }}>
         <Alert severity="warning" sx={{ mb: 2 }}>
-          Guarde estes códigos em lugar seguro. Cada um entra uma vez no lugar do código do app,
-          se você perder o celular. Eles não serão mostrados de novo.
+          Guarde estes códigos em lugar seguro. Cada um entra uma vez no lugar do código do app, se
+          você perder o celular. Eles não serão mostrados de novo.
         </Alert>
 
         <Box
@@ -129,13 +129,15 @@ export function RecoveryCodesDialog({ codes, onClose }: Props) {
 
         <FormControlLabel
           sx={{ mt: 2 }}
-          control={<Checkbox checked={saved} onChange={(event) => setSaved(event.target.checked)} />}
+          control={
+            <Checkbox checked={saved} onChange={(event) => setSaved(event.target.checked)} />
+          }
           label="Guardei os códigos em lugar seguro"
         />
       </DialogContent>
 
       <DialogActions>
-        <Button variant="contained" onClick={onClose} disabled={!saved}>
+        <Button color="primary" variant="contained" onClick={onClose} disabled={!saved}>
           Concluir
         </Button>
       </DialogActions>

@@ -27,14 +27,20 @@ export function NavToggleButton({ isNavMini, sx, ...other }: NavToggleButtonProp
           top: 'calc(var(--layout-header-desktop-height) / 2)',
           left: isNavMini ? 'var(--layout-nav-mini-width)' : 'var(--layout-nav-vertical-width)',
           border: `1px solid ${varAlpha(theme.vars.palette.grey['500Channel'], 0.12)}`,
-          transition: theme.transitions.create(['left'], {
+          // Sombra larga e difusa: destaca o botão sobre o menu azul e sobre o conteúdo.
+          boxShadow: '0 4px 16px rgba(0, 0, 0, 0.22), 0 1px 4px rgba(0, 0, 0, 0.12)',
+          transition: theme.transitions.create(['left', 'box-shadow'], {
             easing: 'var(--layout-transition-easing)',
             duration: 'var(--layout-transition-duration)',
           }),
           '&:hover': {
             color: 'text.primary',
             bgcolor: 'background.neutral',
+            boxShadow: '0 6px 22px rgba(0, 0, 0, 0.28), 0 2px 6px rgba(0, 0, 0, 0.14)',
           },
+          ...theme.applyStyles('dark', {
+            boxShadow: '0 4px 18px rgba(0, 0, 0, 0.55), 0 1px 4px rgba(0, 0, 0, 0.35)',
+          }),
         }),
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}

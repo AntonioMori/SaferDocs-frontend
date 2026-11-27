@@ -112,9 +112,11 @@ export function LoginView() {
   return (
     <>
       <FormHead
-        title="Entrar no SaferDocs"
+        title="Bem-vindo de volta"
         description={
           <>
+            Entre com e-mail e senha para acessar a plataforma.
+            <br />
             {'Ainda não tem conta? '}
             <Link component={RouterLink} href={paths.cadastro} variant="subtitle2">
               Criar conta
@@ -165,7 +167,7 @@ export function LoginView() {
 
           <Button
             fullWidth
-            color="inherit"
+            color="primary"
             size="large"
             type="submit"
             variant="contained"

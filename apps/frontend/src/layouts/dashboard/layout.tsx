@@ -7,8 +7,8 @@ import { useBoolean } from 'minimal-shared/hooks';
 
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
-import { useTheme } from '@mui/material/styles';
 import { iconButtonClasses } from '@mui/material/IconButton';
+import { useTheme, useColorScheme } from '@mui/material/styles';
 
 import { Logo } from 'src/components/logo';
 import { useSettingsContext } from 'src/components/settings';
@@ -50,7 +50,11 @@ export function DashboardLayout({
 
   const settings = useSettingsContext();
 
-  const navVars = dashboardNavColorVars(theme, settings.state.navColor, settings.state.navLayout);
+  const { colorScheme } = useColorScheme();
+  // No modo escuro o menu sempre segue o visual do "aparente".
+  const navColor = colorScheme === 'dark' ? 'apparent' : settings.state.navColor;
+
+  const navVars = dashboardNavColorVars(theme, navColor, settings.state.navLayout);
 
   const { value: open, onFalse: onClose, onTrue: onOpen } = useBoolean();
 

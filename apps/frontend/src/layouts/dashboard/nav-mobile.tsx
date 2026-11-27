@@ -8,11 +8,11 @@ import Drawer from '@mui/material/Drawer';
 
 import { usePathname } from 'src/routes/hooks';
 
-import { Logo } from 'src/components/logo';
 import { Scrollbar } from 'src/components/scrollbar';
 import { NavSectionVertical } from 'src/components/nav-section';
 
 import { layoutClasses } from '../core';
+import { NavLogo } from '../components/nav-logo';
 
 // ----------------------------------------------------------------------
 
@@ -54,7 +54,7 @@ export function NavMobile({
           sx: [
             {
               overflow: 'unset',
-              bgcolor: 'var(--layout-nav-bg)',
+              background: 'var(--layout-nav-bg)',
               width: 'var(--layout-nav-mobile-width)',
             },
             ...(Array.isArray(sx) ? sx : [sx]),
@@ -63,8 +63,8 @@ export function NavMobile({
       }}
     >
       {slots?.topArea ?? (
-        <Box sx={{ pl: 3.5, pt: 2.5, pb: 1 }}>
-          <Logo />
+        <Box sx={{ pl: 3, pt: 2.5, pb: 1 }}>
+          <NavLogo />
         </Box>
       )}
 

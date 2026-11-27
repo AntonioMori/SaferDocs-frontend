@@ -13,7 +13,10 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 import { openPdf } from 'src/lib/pdf/pdfjs';
 
+import { LogoMark } from 'src/components/logo';
 import { Iconify } from 'src/components/iconify';
+
+import { useAuthContext } from 'src/auth/hooks';
 
 import { SEAL_WIDTH_PT, SEAL_HEIGHT_PT } from '../api/seal';
 import {
@@ -68,6 +71,7 @@ export function SealPositionPicker({
   onReadyChange,
   disabled,
 }: Props) {
+  const { user } = useAuthContext();
   const [doc, setDoc] = useState<PDFDocumentProxy | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [rendered, setRendered] = useState<(PageGeometry & { page: number }) | null>(null);
@@ -423,24 +427,19 @@ export function SealPositionPicker({
                 top: rect.top,
                 width: rect.width,
                 height: rect.height,
-                display: 'flex',
-                lineHeight: 1.2,
                 position: 'absolute',
-                alignItems: 'center',
-                justifyContent: 'center',
-                typography: 'caption',
-                fontWeight: 600,
-                color: 'primary.dark',
                 cursor: disabled ? 'default' : 'grab',
-                border: `2px dashed ${theme.vars.palette.primary.main}`,
-                bgcolor: `rgba(${theme.vars.palette.primary.mainChannel} / 0.16)`,
+                // Contorno tracejado por fora: indica que o selo se arrasta, sem mudar o desenho.
+                outline: `2px dashed ${theme.vars.palette.primary.main}`,
+                outlineOffset: 3,
+                borderRadius: `${rect.width * 0.025}px`,
+                boxShadow: theme.vars.customShadows.z8,
                 '&:focus-visible': {
                   outline: `3px solid ${theme.vars.palette.primary.dark}`,
-                  outlineOffset: 2,
                 },
               })}
             >
-              Selo
+              <SealPreview name={user?.name} />
             </Box>
           )}
         </Box>
@@ -461,5 +460,103 @@ export function SealPositionPicker({
         {announcement}
       </Box>
     </Stack>
+  );
+}
+
+// ----------------------------------------------------------------------
+
+/**
+ * Miniatura do selo que o backend desenha no PDF (pdf_worker/seal.py), nas mesmas proporções do
+ * desenho de 240 x 80 pt: faixa azul com o monograma, o destaque com o nome, a data e o rodapé.
+ * As medidas em `cqw`/`cqh` acompanham o tamanho da página na tela.
+ */
+const SEAL_TEXT = {
+  position: 'absolute',
+  left: '25.8cqw',
+  right: '3.75cqw',
+  lineHeight: 1,
+  whiteSpace: 'nowrap',
+} as const;
+
+function SealPreview({ name }: { name?: string }) {
+  return (
+    <Box
+      aria-hidden
+      sx={{
+        width: 1,
+        height: 1,
+        display: 'flex',
+        overflow: 'hidden',
+        borderRadius: 'inherit',
+        containerType: 'size',
+        position: 'relative',
+        bgcolor: 'common.white',
+        border: '1px solid #DFE3E8',
+        fontFamily: 'Helvetica, Arial, sans-serif',
+      }}
+    >
+      <Box
+        sx={{
+          width: '21.7cqw',
+          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          bgcolor: '#078DEE',
+        }}
+      >
+        <Box component="svg" viewBox="0 0 104 104" sx={{ width: '62%', height: 'auto' }}>
+          <LogoMark tile={false} />
+        </Box>
+      </Box>
+
+      {/* Linhas nas coordenadas do desenho do PDF (base da letra, em pt de 80), em % da altura. */}
+      <Box
+        sx={{
+          ...SEAL_TEXT,
+          bottom: '77.2cqh',
+          fontSize: '7.5cqh',
+          fontWeight: 700,
+          letterSpacing: '0.15em',
+          color: '#078DEE',
+        }}
+      >
+        ASSINADO DIGITALMENTE
+      </Box>
+      <Box
+        sx={{
+          ...SEAL_TEXT,
+          bottom: '57.1cqh',
+          fontSize: '13.75cqh',
+          fontWeight: 700,
+          color: '#1C252E',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        }}
+      >
+        {name || 'Seu nome'}
+      </Box>
+      <Box sx={{ ...SEAL_TEXT, bottom: '44.3cqh', fontSize: '9.4cqh', color: '#454F5B' }}>
+        Data e hora (UTC)
+      </Box>
+      <Box sx={{ ...SEAL_TEXT, bottom: '35.6cqh', height: 0, borderTop: '1px solid #DFE3E8' }} />
+      {[
+        { bottom: '21cqh', width: '45cqw' },
+        { bottom: '11cqh', width: '62cqw' },
+      ].map((bar) => (
+        <Box
+          key={bar.bottom}
+          sx={{
+            position: 'absolute',
+            left: '25.8cqw',
+            bottom: bar.bottom,
+            width: bar.width,
+            height: '5cqh',
+            borderRadius: 9,
+            bgcolor: '#E9ECEE',
+          }}
+        />
+      ))}
+    </Box>
   );
 }

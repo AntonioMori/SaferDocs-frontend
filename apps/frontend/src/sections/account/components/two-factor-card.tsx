@@ -87,6 +87,7 @@ export function TwoFactorCard() {
           </Stack>
         ) : (
           <Button
+            color="primary"
             variant="contained"
             onClick={enableDialog.onTrue}
             startIcon={<Iconify icon="solar:shield-check-bold" />}
@@ -96,7 +97,11 @@ export function TwoFactorCard() {
         )}
       </Box>
 
-      <EnableTwoFactorDialog open={enableDialog.value} onClose={enableDialog.onFalse} onEnabled={handleEnabled} />
+      <EnableTwoFactorDialog
+        open={enableDialog.value}
+        onClose={enableDialog.onFalse}
+        onEnabled={handleEnabled}
+      />
 
       <DisableTwoFactorDialog
         open={disableDialog.value}

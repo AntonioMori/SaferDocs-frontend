@@ -36,12 +36,12 @@ export const navData: NavSectionProps['data'] = [
       {
         title: 'Sessões',
         path: paths.conta.sessoes,
-        icon: <Iconify width={24} icon="solar:monitor-bold" />,
+        icon: <Iconify width={24} icon="solar:monitor-bold-duotone" />,
       },
       {
         title: 'Passkeys',
         path: paths.conta.passkeys,
-        icon: <Iconify width={24} icon="solar:user-id-bold" />,
+        icon: <Iconify width={24} icon="solar:user-id-bold-duotone" />,
       },
       {
         title: 'Atividade',

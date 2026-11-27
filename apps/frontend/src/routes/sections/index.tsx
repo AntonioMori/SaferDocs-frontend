@@ -5,7 +5,7 @@ import { Outlet, Navigate } from 'react-router';
 
 import { SimpleLayout } from 'src/layouts/simple';
 import { DashboardLayout } from 'src/layouts/dashboard';
-import { AuthCenteredLayout } from 'src/layouts/auth-centered';
+import { AuthPainelLayout } from 'src/layouts/auth-painel';
 
 import { SplashScreen, LoadingScreen } from 'src/components/loading-screen';
 
@@ -26,10 +26,10 @@ const Page404 = lazy(() => import('src/pages/error/404'));
 const Page500 = lazy(() => import('src/pages/error/500'));
 
 /** Telas de quem ainda não entrou: com sessão ativa, o GuestGuard leva ao `returnTo`. */
-const authCentered = (page: React.ReactNode): React.ReactNode => (
+const authPainel = (page: React.ReactNode): React.ReactNode => (
   <GuestGuard>
     <Suspense fallback={<SplashScreen />}>
-      <AuthCenteredLayout>{page}</AuthCenteredLayout>
+      <AuthPainelLayout>{page}</AuthPainelLayout>
     </Suspense>
   </GuestGuard>
 );
@@ -60,9 +60,9 @@ export const routesSection: RouteObject[] = [
   { path: '/', element: <Navigate to={paths.entrar} replace /> },
 
   // Autenticação (login, cadastro e 2FA)
-  { path: paths.entrar, element: authCentered(<LoginPage />) },
-  { path: paths.cadastro, element: authCentered(<CadastroPage />) },
-  { path: paths.doisFatores, element: authCentered(<DoisFatoresPage />) },
+  { path: paths.entrar, element: authPainel(<LoginPage />) },
+  { path: paths.cadastro, element: authPainel(<CadastroPage />) },
+  { path: paths.doisFatores, element: authPainel(<DoisFatoresPage />) },
 
   // Verificação pública de PDF assinado: sem login. Quem está logado vê a mesma
   // página dentro do painel, com a barra lateral para voltar a assinar.

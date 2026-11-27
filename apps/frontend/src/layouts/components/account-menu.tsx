@@ -21,10 +21,18 @@ import { useAuthContext } from 'src/auth/hooks';
 // ----------------------------------------------------------------------
 
 const LINKS = [
-  { label: 'Segurança da conta', href: paths.conta.seguranca, icon: 'solar:shield-keyhole-bold-duotone' },
-  { label: 'Sessões ativas', href: paths.conta.sessoes, icon: 'solar:monitor-bold' },
-  { label: 'Passkeys', href: paths.conta.passkeys, icon: 'solar:user-id-bold' },
-  { label: 'Atividade de segurança', href: paths.conta.atividade, icon: 'solar:bell-bing-bold-duotone' },
+  {
+    label: 'Segurança da conta',
+    href: paths.conta.seguranca,
+    icon: 'solar:shield-keyhole-bold-duotone',
+  },
+  { label: 'Sessões ativas', href: paths.conta.sessoes, icon: 'solar:monitor-bold-duotone' },
+  { label: 'Passkeys', href: paths.conta.passkeys, icon: 'solar:user-id-bold-duotone' },
+  {
+    label: 'Atividade de segurança',
+    href: paths.conta.atividade,
+    icon: 'solar:bell-bing-bold-duotone',
+  },
 ] as const;
 
 /** Iniciais do nome para o avatar (até duas letras). */
@@ -61,7 +69,7 @@ export function AccountMenu() {
         aria-expanded={open}
         sx={{ p: 0.25 }}
       >
-        <Avatar sx={{ width: 36, height: 36, fontSize: 14, bgcolor: 'primary.main' }}>
+        <Avatar color="primary" sx={{ width: 36, height: 36, fontSize: 14, fontWeight: 600 }}>
           {initials(user?.name)}
         </Avatar>
       </IconButton>

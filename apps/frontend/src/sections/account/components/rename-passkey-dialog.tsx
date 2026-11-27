@@ -89,7 +89,7 @@ export function RenamePasskeyDialog({ passkey, onClose, onRenamed, onGone }: Pro
           <Button variant="outlined" color="inherit" onClick={onClose} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <Button type="submit" variant="contained" loading={isSubmitting}>
+          <Button type="submit" color="primary" variant="contained" loading={isSubmitting}>
             Salvar
           </Button>
         </DialogActions>
