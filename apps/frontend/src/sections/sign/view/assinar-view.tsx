@@ -105,7 +105,7 @@ export function AssinarView() {
                 </Button>
               }
             >
-              Este PDF já foi assinado no SaferDocs. Para conferir a assinatura, use a verificação.
+              Você já assinou este PDF no SaferDocs. Outra pessoa pode assinar por cima, mas a mesma pessoa só assina uma vez. Para conferir as assinaturas, use a verificação.
             </Alert>
           ) : (
             error && <ApiErrorAlert error={error} title="Não foi possível assinar" />

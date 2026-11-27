@@ -1,5 +1,5 @@
 import type { IconifyName } from 'src/components/iconify';
-import type { VerifyResult, VerifyStatus } from '../api/verify-document';
+import type { VerifyResult, VerifySigner, VerifyStatus } from '../api/verify-document';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -61,19 +61,43 @@ export function formatBrasilia(iso: string): string {
 
 // ----------------------------------------------------------------------
 
+function signerDetails(signer: VerifySigner): { label: string; value: string }[] {
+  return [
+    ...(signer.signerName ? [{ label: 'Assinado por', value: signer.signerName }] : []),
+    ...(signer.signedAt
+      ? [{ label: 'Data da assinatura', value: formatBrasilia(signer.signedAt) }]
+      : []),
+    ...(signer.signatureId ? [{ label: 'Id da assinatura', value: signer.signatureId }] : []),
+  ];
+}
+
+function DetailList({ details }: { details: { label: string; value: string }[] }) {
+  return (
+    <Box component="dl" sx={{ m: 0, display: 'grid', gap: 1.5 }}>
+      {details.map(({ label, value }) => (
+        <Box key={label}>
+          <Typography component="dt" variant="caption" sx={{ color: 'text.secondary' }}>
+            {label}
+          </Typography>
+          <Typography component="dd" variant="subtitle2" sx={{ m: 0, wordBreak: 'break-all' }}>
+            {value}
+          </Typography>
+        </Box>
+      ))}
+    </Box>
+  );
+}
+
+// ----------------------------------------------------------------------
+
 export function VerifyResultCard({ result }: { result: VerifyResult }) {
   const view = STATUS_VIEWS[result.status];
+  const signers = result.status === 'INTEGRO' ? result.signers : [];
+  const several = signers.length > 1;
 
-  const details: { label: string; value: string }[] =
-    result.status === 'INTEGRO'
-      ? [
-          ...(result.signerName ? [{ label: 'Assinado por', value: result.signerName }] : []),
-          ...(result.signedAt
-            ? [{ label: 'Data da assinatura', value: formatBrasilia(result.signedAt) }]
-            : []),
-          ...(result.signatureId ? [{ label: 'Id da assinatura', value: result.signatureId }] : []),
-        ]
-      : [];
+  const description = several
+    ? `As ${signers.length} assinaturas são válidas e o arquivo não foi alterado desde a última, feita no SaferDocs.`
+    : view.description;
 
   return (
     <Box
@@ -93,25 +117,36 @@ export function VerifyResultCard({ result }: { result: VerifyResult }) {
           sx={{ flexShrink: 0, color: `${view.color}.main` }}
         />
 
-        <Box sx={{ minWidth: 0 }}>
+        <Box sx={{ minWidth: 0, flexGrow: 1 }}>
           <Typography variant="h5" sx={{ color: `${view.color}.dark` }}>
             {view.title}
           </Typography>
 
           <Typography variant="body2" sx={{ mt: 0.5, color: 'text.secondary' }}>
-            {view.description}
+            {description}
           </Typography>
 
-          {details.length > 0 && (
-            <Box component="dl" sx={{ m: 0, mt: 2, display: 'grid', gap: 1.5 }}>
-              {details.map(({ label, value }) => (
-                <Box key={label}>
-                  <Typography component="dt" variant="caption" sx={{ color: 'text.secondary' }}>
-                    {label}
+          {signers.length === 1 && (
+            <Box sx={{ mt: 2 }}>
+              <DetailList details={signerDetails(signers[0])} />
+            </Box>
+          )}
+
+          {several && (
+            <Box component="ol" sx={{ m: 0, mt: 2, p: 0, listStyle: 'none', display: 'grid', gap: 2 }}>
+              {signers.map((signer, index) => (
+                <Box
+                  component="li"
+                  key={signer.signatureId ?? index}
+                  sx={(theme) => ({
+                    pl: 2,
+                    borderLeft: `3px solid ${theme.vars.palette[view.color].main}`,
+                  })}
+                >
+                  <Typography variant="overline" sx={{ color: 'text.secondary' }}>
+                    {`${index + 1}ª assinatura`}
                   </Typography>
-                  <Typography component="dd" variant="subtitle2" sx={{ m: 0, wordBreak: 'break-all' }}>
-                    {value}
-                  </Typography>
+                  <DetailList details={signerDetails(signer)} />
                 </Box>
               ))}
             </Box>

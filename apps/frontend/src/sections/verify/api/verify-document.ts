@@ -4,18 +4,34 @@ import axios, { endpoints, UPLOAD_TIMEOUT_MS } from 'src/lib/axios';
 
 export type VerifyStatus = 'INTEGRO' | 'ADULTERADO' | 'NAO_ENCONTRADA';
 
-export type VerifyResult = {
-  status: VerifyStatus;
-  /** Só quando `INTEGRO`. */
+export type VerifySigner = {
   signerName?: string;
-  /** ISO 8601 em UTC, só quando `INTEGRO`. */
+  /** ISO 8601 em UTC. */
   signedAt?: string;
   signatureId?: string;
+};
+
+export type VerifyResult = VerifySigner & {
+  status: VerifyStatus;
+  /**
+   * Só quando `INTEGRO`: todas as assinaturas do SaferDocs, da primeira para a última. Os campos
+   * de cima (`signerName`, `signedAt`, `signatureId`) são os da última.
+   */
+  signers: VerifySigner[];
 };
 
 const STATUSES: readonly string[] = ['INTEGRO', 'ADULTERADO', 'NAO_ENCONTRADA'];
 
 const asString = (value: unknown) => (typeof value === 'string' ? value : undefined);
+
+function asSigner(value: unknown): VerifySigner {
+  const item = (value ?? {}) as Record<string, unknown>;
+  return {
+    signerName: asString(item.signer_name),
+    signedAt: asString(item.signed_at),
+    signatureId: asString(item.signature_id),
+  };
+}
 
 /**
  * `POST /verify` (REQ-50 a 54): pública, não precisa de login. O PDF é lido e descartado
@@ -35,10 +51,13 @@ export async function verifyDocument(file: File): Promise<VerifyResult> {
     throw new Error('Resposta inesperada da verificação');
   }
 
+  const latest = asSigner(data);
+  const signers = Array.isArray(data.signers) ? data.signers.map(asSigner) : [];
+
   return {
     status: data.status as VerifyStatus,
-    signerName: asString(data.signer_name),
-    signedAt: asString(data.signed_at),
-    signatureId: asString(data.signature_id),
+    ...latest,
+    // Backend antigo, sem `signers`: a única assinatura é a dos campos de cima.
+    signers: signers.length > 0 || data.status !== 'INTEGRO' ? signers : [latest],
   };
 }
