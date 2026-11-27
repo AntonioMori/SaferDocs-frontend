@@ -29,6 +29,8 @@ export const API_ERROR_CODES = {
   validation: 'VAL_001',
   /** Arquivo acima do limite (mesmo código do backend). */
   tooLarge: 'DOC_002',
+  /** O PDF já tem uma assinatura do SaferDocs: não dá para assinar de novo. */
+  alreadySigned: 'DOC_006',
 } as const;
 
 const FALLBACK_MESSAGE = 'Não foi possível concluir a operação. Tente novamente.';
